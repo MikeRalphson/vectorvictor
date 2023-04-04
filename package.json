@@ -9,6 +9,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "openai": "^3.2.1"
+    "breakdance": "^3.0.1",
+    "openai": "^3.2.1",
+    "turndown": "^7.1.2"
   }
 }
