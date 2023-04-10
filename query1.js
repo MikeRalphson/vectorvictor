@@ -33,6 +33,7 @@ async function getEmbeddings(text) {
 
 async function poke(text, embeddings, source, page, prompt, hidden) {
   if (!embeddings.length) return false;
+  text = text.trim();
   let res = await client.query(`SELECT COUNT(1) from "mike"."hhg" WHERE NOT prompt AND text = $1;`, [ text ]);
   if (res && res.rows && res.rows[0]) console.log(`Count: ${res.rows[0].count}`);
   let count = 0;

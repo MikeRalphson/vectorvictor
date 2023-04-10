@@ -12,7 +12,7 @@ async function getEmbeddings(text) {
   const res = await fetch('https://api.openai.com/v1/embeddings',{
     method: 'post',
     headers: { "content-type": "application/json", "Authorization": `Bearer ${process.env.OPENAI_API_KEY}` },
-    body: `{ "model": "text-embedding-ada-002", "input": "${text}" }` });
+    body: `{ "model": "text-embedding-ada-002", "input": "${text.trim()}" }` });
   let result, msg;
   try {
     result = await res.json();
