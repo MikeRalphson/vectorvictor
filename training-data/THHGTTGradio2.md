@@ -945,6 +945,3 @@ Eddie, the shipboard Computer: Hi there, this Eddie, your shipboard computer. An
 **TX:**  
 BBC Radio 4:  
 15th March 1978  
-  
-**Notes:**  
-\*Featuring Arthur Dent and Ford Prefect, and introducing Zaphod Beeblebrox, Trisha 'Trillian' McMillan and Marvin

@@ -1417,7 +1417,3 @@ In the last episode of _’The Hitch-Hiker’s Guide to the Galaxy’_, Peter Jo
 **TX:**  
 BBC Radio 4:  
 12th April 1978  
-  
-**Notes:**  
-  
-\*Featuring Arthur Dent, Ford Prefect, Zaphod Beeblebrox, Trisha 'Trillian' McMillan and Marvin

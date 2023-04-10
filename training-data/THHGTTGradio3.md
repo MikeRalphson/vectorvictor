@@ -816,6 +816,3 @@ I’m sorry, but I’d probably be able to cope better if I hadn’t bruised my 
 **TX:**  
 BBC Radio 4:  
 22nd March 1978  
-  
-**Notes:**  
-\*Featuring Arthur Dent, Ford Prefect, Zaphod Beeblebrox, Trisha 'Trillian' McMillan and Marvin

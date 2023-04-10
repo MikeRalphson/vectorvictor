@@ -905,6 +905,3 @@ I quite liked it really. The imagery was really particularly affective and the m
 **TX:**  
 BBC Radio 4:  
 8th March 1978  
-  
-**Notes:**  
-\*Introducing Arthur Dent and Ford Prefect

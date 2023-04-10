@@ -1216,7 +1216,3 @@ In that episode of �_The Hitch Hiker�s Guide to the Galaxy�_, Peter Jones 
 **TX:**  
 BBC Radio 4:  
 22nd January 1980  
-  
-**Notes:**  
-  
-\*Featuring Arthur Dent, Ford Prefect, Zaphod Beeblebrox and Marvin

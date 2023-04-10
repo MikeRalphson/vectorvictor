@@ -1095,6 +1095,3 @@ In that episode of ‘The Hitch-Hiker’s Guide to the Galaxy’, Peter Jones wa
 **TX:**  
 BBC Radio 4:  
 29th March 1978  
-  
-**Notes:**  
-\*Featuring Arthur Dent, Ford Prefect, Zaphod Beeblebrox, Trisha 'Trillian' McMillan and Marvin

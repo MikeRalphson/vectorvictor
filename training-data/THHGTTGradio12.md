@@ -1375,9 +1375,3 @@ In that, the final episode of this series of _’The Hitch Hiker’s Guide to th
 **TX:**  
 BBC Radio 4:  
 25th January 1980  
-  
-**Notes:**  
-  
-\*Featuring Arthur Dent, Ford Prefect, Zaphod Beeblebrox and Marvin  
-  
-\*Thanks to Anne-Cécile Pitton for the lyrics to 'That Old Janx Spirit'

@@ -1,16 +1,26 @@
 {
   "name": "hhg",
   "version": "1.0.0",
-  "description": "",
+  "description": "* convert training data from html to markdown * create embeddings or finetune it",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "MIT",
+  "author": "Mike Ralphson",
+  "license": "Apache-2.0",
   "dependencies": {
-    "breakdance": "^3.0.1",
+    "@pinecone-database/pinecone": "^0.0.12",
+    "dotenv": "^16.0.3",
+    "lib": "^5.0.1",
     "openai": "^3.2.1",
+    "pg": "^8.10.0",
     "turndown": "^7.1.2"
-  }
+  },
+  "keywords": [
+    "hhg",
+    "vector",
+    "ml",
+    "ai",
+    "llm"
+  ]
 }

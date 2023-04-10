@@ -1265,7 +1265,3 @@ Hey man, is that a piece of fairy cake? My stomach’s just completely out to lu
 **TX:**  
 BBC Radio 4:  
 21st January 1980  
-  
-**Notes:**  
-  
-\*Featuring Arthur Dent, Ford Prefect and Zaphod Beeblebrox
