@@ -6,6 +6,8 @@ const oa = require('openai');
 env.config();
 const client = new Client({ database: 'mike', password: process.env.PGPASSWORD });
 
+const table = process.env.PGTABLE;
+
 const data = fs.readFileSync(process.argv[2],'utf8').split('\r').join('').split('\n');
 
 async function getEmbeddings(text) {
@@ -16,11 +18,10 @@ async function getEmbeddings(text) {
   let result, msg;
   try {
     result = await res.json();
-    //result = JSON.parse(msg);
-    return result.data[0].embedding;
+    if (result && result.data && result.data.length && result.data[0].embedding) return result.data[0].embedding;
+    return [];
   }
   catch (ex) {
-    //if (result) console.log(result.status,msg);
     console.log(`\n\n${ex.message}`);
     return [];
   }
@@ -28,8 +29,7 @@ async function getEmbeddings(text) {
 
 async function poke(text, embeddings, source, page, prompt, hidden) {
   if (!embeddings.length) return false;
-  const res = await client.query(`INSERT INTO "mike"."hhg" (text, embedding, source, page, prompt, hidden) VALUES ($1, $2, $3, $4, $5, $6);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden]);
-  //if (res && res.rows && res.rows[0]) console.log(res.rows[0].message);
+  const res = await client.query(`INSERT INTO "mike"."${table}" (text, embedding, source, page, prompt, hidden) VALUES ($1, $2, $3, $4, $5, $6);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden]);
   return true;
 }
 

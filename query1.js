@@ -6,7 +6,9 @@ const env = require('dotenv');
 const oa = require('openai');
 
 env.config();
-const client = new Client({ database: 'mike', password: process.env.PGPASSWORD });
+//const client = new Client({ database: 'mike', password: process.env.PGPASSWORD });
+const client = new Client();
+const table = process.env.PGTABLE;
 
 const arr = Array.from(process.argv);
 arr.shift(0);
@@ -34,15 +36,15 @@ async function getEmbeddings(text) {
 async function poke(text, embeddings, source, page, prompt, hidden) {
   if (!embeddings.length) return false;
   text = text.trim();
-  let res = await client.query(`SELECT COUNT(1) from "mike"."hhg" WHERE NOT prompt AND text = $1;`, [ text ]);
+  let res = await client.query(`SELECT COUNT(1) from "mike"."${table}" WHERE NOT prompt AND text = $1;`, [ text ]);
   if (res && res.rows && res.rows[0]) console.log(`Count: ${res.rows[0].count}`);
   let count = 0;
   if (res && res.rows && res.rows[0].count) count = res.rows[0].count;
   if (count <= 0) {
-    res = await client.query(`INSERT INTO "mike"."hhg" (text, embedding, source, page, prompt, hidden) VALUES ($1, $2, $3, $4, $5, $6);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden]);
+    res = await client.query(`INSERT INTO "mike"."${table}" (text, embedding, source, page, prompt, hidden) VALUES ($1, $2, $3, $4, $5, $6);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden]);
     if (res && res.rows && res.rows[0]) console.log(res.rows[0].message);
   }
-  res = await client.query(`SELECT text,source,page FROM hhg WHERE prompt ORDER BY embedding <-> $1 LIMIT 10;`, [ `${JSON.stringify(embeddings)}` ]);
+  res = await client.query(`SELECT text,source,page FROM ${table} WHERE prompt ORDER BY embedding <-> $1 LIMIT 10;`, [ `${JSON.stringify(embeddings)}` ]);
   if (res && res.rows) console.log(util.inspect(res.rows, { depth: null }));
 
   return true;
