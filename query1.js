@@ -6,9 +6,10 @@ const env = require('dotenv');
 const oa = require('openai');
 
 env.config();
-//const client = new Client({ database: 'mike', password: process.env.PGPASSWORD });
 const client = new Client();
 const table = process.env.PGTABLE;
+
+const now = new Date();
 
 const arr = Array.from(process.argv);
 arr.shift(0);
@@ -41,7 +42,7 @@ async function poke(text, embeddings, source, page, prompt, hidden) {
   let count = 0;
   if (res && res.rows && res.rows[0].count) count = res.rows[0].count;
   if (count <= 0) {
-    res = await client.query(`INSERT INTO "mike"."${table}" (text, embedding, source, page, prompt, hidden) VALUES ($1, $2, $3, $4, $5, $6);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden]);
+    res = await client.query(`INSERT INTO "mike"."${table}" (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
     if (res && res.rows && res.rows[0]) console.log(res.rows[0].message);
   }
   res = await client.query(`SELECT text,source,page FROM ${table} WHERE prompt ORDER BY embedding <-> $1 LIMIT 10;`, [ `${JSON.stringify(embeddings)}` ]);
@@ -51,12 +52,12 @@ async function poke(text, embeddings, source, page, prompt, hidden) {
 }
 
 async function main() {
-await client.connect()
-const res = await client.query('SET search_path TO mike,public;');
-const embeddings = await getEmbeddings(data);
-await poke(data, embeddings, 'user', 1, false, false);
-console.log(`Last line: ${data}`);
-await client.end()
+  await client.connect()
+  const res = await client.query('SET search_path TO mike,public;');
+  const embeddings = await getEmbeddings(data);
+  await poke(data, embeddings, 'user', 1, false, false);
+  console.log(`Saved query: ${data}`);
+  await client.end()
 }
 
 main();

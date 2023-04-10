@@ -8,6 +8,8 @@ const client = new Client({ database: 'mike', password: process.env.PGPASSWORD }
 
 const table = process.env.PGTABLE;
 
+const now = new Date();
+
 const data = fs.readFileSync(process.argv[2],'utf8').split('\r').join('').split('\n');
 
 async function getEmbeddings(text) {
@@ -29,44 +31,44 @@ async function getEmbeddings(text) {
 
 async function poke(text, embeddings, source, page, prompt, hidden) {
   if (!embeddings.length) return false;
-  const res = await client.query(`INSERT INTO "mike"."${table}" (text, embedding, source, page, prompt, hidden) VALUES ($1, $2, $3, $4, $5, $6);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden]);
+  const res = await client.query(`INSERT INTO "mike"."${table}" (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
   return true;
 }
 
 async function main() {
-await client.connect()
-const res = await client.query('SET search_path TO mike,public;');
-let stream = '';
-let streams = 0;
-let lineNo = 1;
-let page = 1;
-for (let line of data) {
-  if (lineNo % 63 === 0) {
-    page++;
-    lineNo = 1;
+  await client.connect()
+  const res = await client.query('SET search_path TO mike,public;');
+  let stream = '';
+  let streams = 0;
+  let lineNo = 1;
+  let page = 1;
+  for (let line of data) {
+    if (lineNo % 63 === 0) {
+      page++;
+      lineNo = 1;
+    }
+    if (line.length > 200) {
+      process.stdout.write('*');
+    }
+    else {
+      process.stdout.write('.');
+    }
+    if ((stream.length+line.length < 200) || (line === "")) {
+      stream += ' '+line.trim();
+    }
+    else {
+      const embeddings = await getEmbeddings(stream);
+      await poke(stream, embeddings, process.argv[2], page, true, false);
+      streams++;
+      stream = '';
+    }
+    lineNo++;
   }
-  if (line.length > 200) {
-    process.stdout.write('*');
-  }
-  else {
-    process.stdout.write('.');
-  }
-  if ((stream.length+line.length < 200) || (line === "")) {
-    stream += ' '+line.trim();
-  }
-  else {
-    const embeddings = await getEmbeddings(stream);
-    await poke(stream, embeddings, process.argv[2], page, true, false);
-    streams++;
-    stream = '';
-  }
-  lineNo++;
-}
-const embeddings = await getEmbeddings(stream);
-await poke(stream, embeddings, process.argv[2], page, true, false);
-console.log(`\n\nImported ${streams} lines`);
-console.log(`Last line: ${stream}`);
-await client.end()
+  const embeddings = await getEmbeddings(stream);
+  await poke(stream, embeddings, process.argv[2], page, true, false);
+  console.log(`\n\nImported ${streams} lines`);
+  console.log(`Last line: ${stream}`);
+  await client.end()
 }
 
 main();
