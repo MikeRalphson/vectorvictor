@@ -3,12 +3,16 @@
   "version": "1.0.0",
   "description": "Process documents and store chunks and embeddings for textual search",
   "main": "import1.js",
+  "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Mike Ralphson",
   "license": "Apache-2.0",
   "dependencies": {
+    "@feathersjs/feathers": "^5.0.3",
+    "@feathersjs/koa": "^5.0.3",
+    "@feathersjs/socketio": "^5.0.3",
     "better-sqlite3": "^8.3.0",
     "dotenv": "^16.0.3",
     "pg": "^8.10.0",

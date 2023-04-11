@@ -1,7 +1,8 @@
 // accept a query id and a prompt id and reset the embeddings on the query to be the same as the prompt's
 
-const { Client } = require('pg');
-const env = require('dotenv');
+import pg from 'pg';
+const { Client } = pg;
+import env from 'dotenv';
 
 env.config();
 const client = new Client();
@@ -15,4 +16,9 @@ async function main(queryId, promptId) {
   res = await client.query(`UPDATE "${database}"."${table}" SET embeddings = $1, date = $2 WHERE id = $3);`, [ `${JSON.stringify(embeddings)}`, now, queryId ]);
 }
 
-main(process.argv[2], process.argv[3]);
+if (process.argv.length >= 4) {
+  main(process.argv[2], process.argv[3]);
+}
+else {
+  console.warn(`Usage: node link1.js {queryId} {promptId}`);
+}

@@ -1,6 +1,7 @@
-const fs = require('node:fs');
-const { Client } = require('pg');
-const env = require('dotenv');
+import * as fs from 'node:fs';
+import pg from 'pg';
+const { Client } = pg;
+import env from 'dotenv';
 
 const now = new Date();
 const MAX_CHUNK_SIZE = 250;
