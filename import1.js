@@ -1,14 +1,20 @@
 const fs = require('node:fs');
 const { Client } = require('pg');
 const env = require('dotenv');
-const oa = require('openai');
-
-env.config();
-const client = new Client({ database: 'mike', password: process.env.PGPASSWORD });
-
-const table = process.env.PGTABLE;
 
 const now = new Date();
+const MAX_CHUNK_SIZE = 250;
+const WORD_OVERLAP = 2;
+
+env.config();
+const client = new Client();
+
+const database = process.env.PGDATABASE;
+const table = process.env.PGTABLE;
+
+// TODO skip YAML front-matter of markdown docs
+// skip code blocks in markdown
+// skip HTML comments
 
 const data = fs.readFileSync(process.argv[2],'utf8').split('\r').join('').split('\n');
 
@@ -31,13 +37,13 @@ async function getEmbeddings(text) {
 
 async function poke(text, embeddings, source, page, prompt, hidden) {
   if (!embeddings.length) return false;
-  const res = await client.query(`INSERT INTO "mike"."${table}" (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
+  const res = await client.query(`INSERT INTO "${database}"."${table}" (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
   return true;
 }
 
 async function main() {
   await client.connect()
-  const res = await client.query('SET search_path TO mike,public;');
+  // const res = await client.query('SET search_path TO mike,public;');
   let stream = '';
   let streams = 0;
   let lineNo = 1;
@@ -47,20 +53,28 @@ async function main() {
       page++;
       lineNo = 1;
     }
-    if (line.length > 200) {
+    if (line.length > MAX_CHUNK_SIZE) {
       process.stdout.write('*');
     }
     else {
       process.stdout.write('.');
     }
-    if ((stream.length+line.length < 200) || (line === "")) {
-      stream += ' '+line.trim();
+    if ((stream.length+line.length < MAX_CHUNK_SIZE) || (line === "")) {
+      stream += line.trim()+' ';
     }
     else {
+      const words = line.trim().split(' ');
+      do {
+        const word = words.shift();
+        stream += word+' ';
+      } while (stream.length <= MAX_CHUNK_SIZE);
+    }
+    if (stream.length >= MAX_CHUNK_SIZE) {
       const embeddings = await getEmbeddings(stream);
       await poke(stream, embeddings, process.argv[2], page, true, false);
       streams++;
-      stream = '';
+      const words = stream.split(' ');
+      stream = words.slice(words.length-WORD_OVERLAP,words.length).join(' ');
     }
     lineNo++;
   }

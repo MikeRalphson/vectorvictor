@@ -3,10 +3,10 @@ const util = require('node:util');
 
 const { Client } = require('pg');
 const env = require('dotenv');
-const oa = require('openai');
 
 env.config();
 const client = new Client();
+const database = process.env.PGDATABASE;
 const table = process.env.PGTABLE;
 
 const now = new Date();
@@ -37,12 +37,12 @@ async function getEmbeddings(text) {
 async function poke(text, embeddings, source, page, prompt, hidden) {
   if (!embeddings.length) return false;
   text = text.trim();
-  let res = await client.query(`SELECT COUNT(1) from "mike"."${table}" WHERE NOT prompt AND text = $1;`, [ text ]);
+  let res = await client.query(`SELECT COUNT(1) from "${database}"."${table}" WHERE NOT prompt AND text = $1;`, [ text ]);
   if (res && res.rows && res.rows[0]) console.log(`Count: ${res.rows[0].count}`);
   let count = 0;
   if (res && res.rows && res.rows[0].count) count = res.rows[0].count;
   if (count <= 0) {
-    res = await client.query(`INSERT INTO "mike"."${table}" (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
+    res = await client.query(`INSERT INTO "${database}"."${table}" (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
     if (res && res.rows && res.rows[0]) console.log(res.rows[0].message);
   }
   res = await client.query(`SELECT text,source,page FROM ${table} WHERE prompt ORDER BY embedding <-> $1 LIMIT 10;`, [ `${JSON.stringify(embeddings)}` ]);
@@ -53,7 +53,7 @@ async function poke(text, embeddings, source, page, prompt, hidden) {
 
 async function main() {
   await client.connect()
-  const res = await client.query('SET search_path TO mike,public;');
+  // const res = await client.query('SET search_path TO mike,public;');
   const embeddings = await getEmbeddings(data);
   await poke(data, embeddings, 'user', 1, false, false);
   console.log(`Saved query: ${data}`);
