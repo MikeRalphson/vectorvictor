@@ -15,7 +15,4 @@
 
 ## TODO
 
-* Skip YAML frontmatter in markdown files
-* Skip code blocks in markdown files
-* Skip HTML comments in markdown files
 * Allow to run with `sqlite-vss` as well as Postgres and `pgvector` extension
