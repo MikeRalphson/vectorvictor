@@ -6,7 +6,6 @@ import env from 'dotenv';
 
 env.config();
 const client = new Client();
-const database = process.env.PGDATABASE;
 const table = process.env.PGTABLE;
 
 const now = new Date();
@@ -31,14 +30,14 @@ async function getEmbeddings(text) {
 }
 
 async function peek(text, embeddings, source, page, prompt, hidden) {
-  if (!embeddings.length) return false;
+  if (!embeddings || !embeddings.length) return [];
   text = text.trim();
-  let res = await client.query(`SELECT COUNT(1) from "${database}"."${table}" WHERE NOT prompt AND text LIKE $1;`, [ text ]);
+  let res = await client.query(`SELECT COUNT(1) from ${table} WHERE NOT prompt AND text LIKE $1;`, [ text ]);
   if (res && res.rows && res.rows[0]) console.log(`Existing query count: ${res.rows[0].count}`);
   let count = 0;
   if (res && res.rows && res.rows[0].count) count = res.rows[0].count;
   if (count <= 0) {
-    res = await client.query(`INSERT INTO "${database}"."${table}" (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text.toLowerCase(), `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
+    res = await client.query(`INSERT INTO ${table} (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text.toLowerCase(), `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
     console.log(`Saved new query: ${text}`);
     if (res && res.rows && res.rows[0]) console.log(res.rows[0].message);
   }
@@ -50,7 +49,9 @@ async function peek(text, embeddings, source, page, prompt, hidden) {
 
 export async function query(data) {
   if (!data) return [];
-  if (firstTime) await client.connect();
+  if (firstTime) {
+    await client.connect();
+  }
   firstTime = false;
   const embeddings = await getEmbeddings(data);
   const results = await peek(data, embeddings, 'user', 1, false, false);
