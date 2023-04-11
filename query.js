@@ -33,17 +33,17 @@ async function getEmbeddings(text) {
 async function peek(text, embeddings, source, page, prompt, hidden) {
   if (!embeddings.length) return false;
   text = text.trim();
-  let res = await client.query(`SELECT COUNT(1) from "${database}"."${table}" WHERE NOT prompt AND text = $1;`, [ text ]);
+  let res = await client.query(`SELECT COUNT(1) from "${database}"."${table}" WHERE NOT prompt AND text LIKE $1;`, [ text ]);
   if (res && res.rows && res.rows[0]) console.log(`Existing query count: ${res.rows[0].count}`);
   let count = 0;
   if (res && res.rows && res.rows[0].count) count = res.rows[0].count;
   if (count <= 0) {
-    res = await client.query(`INSERT INTO "${database}"."${table}" (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text, `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
+    res = await client.query(`INSERT INTO "${database}"."${table}" (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text.toLowerCase(), `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
     console.log(`Saved new query: ${data}`);
     if (res && res.rows && res.rows[0]) console.log(res.rows[0].message);
   }
   res = await client.query(`SELECT id,text,source,page,date FROM ${table} WHERE prompt ORDER BY embedding <-> $1 LIMIT 10;`, [ `${JSON.stringify(embeddings)}` ]);
-  if (res && res.rows) console.log(`Rows: ${res.rows.length}, type ${typeof res.rows} is array ${Array.isArray(res.rows)}`);
+  if (res && res.rows) console.log(`Returned row count: ${res.rows.length}`);
 
   return res && res.rows ? res.rows : [];
 }
@@ -54,7 +54,9 @@ export async function query(data) {
   firstTime = false;
   const embeddings = await getEmbeddings(data);
   const results = await peek(data, embeddings, 'user', 1, false, false);
-  //await client.end()
   return results;
 }
 
+export async function quit() {
+  await client.end()
+}

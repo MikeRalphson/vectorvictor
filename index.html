@@ -23,6 +23,7 @@
           <button type="submit" class="btn">Search</button>
         </form>
       <h2 class="pt-1 pb-2 text-lg">Responses</h2>
+      <ul id="list"></ul>
     </main>
 
     <script src="//unpkg.com/@feathersjs/client@^5.0.0/dist/feathers.js"></script>
@@ -52,11 +53,12 @@
 
       // Renders a single message on the page
       function addMessage(message) {
-        const node = document.getElementById('main');
+        const node = document.getElementById('list');
+        list.innerHTML = '';
         const messages = JSON.parse(message.text);
         for (let msg of messages) {
           node.innerHTML += `<div class="chat chat-start p-8">
-                  <div class="chat-bubble"><small>${msg.id}</small> - ${msg.text} <strong><ul><a href="${msg.source}">Link</a></ul></strong> Page: ${msg.page} Date: ${msg.date}</div>
+                  <div class="chat-bubble"><small>${msg.id}</small> - ${msg.text} <strong><ul><a href="${msg.source}">${msg.source}</a></ul></strong> Page: ${msg.page} Date: ${msg.date}</div>
           </div>`;
         }
       }
