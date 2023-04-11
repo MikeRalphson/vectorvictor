@@ -1,5 +1,7 @@
 # Vector-Victor
 
+![logo](./logo.webp)
+
 ## SQL tables needed
 
 * See `table-ops.sql`
