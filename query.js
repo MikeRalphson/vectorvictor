@@ -39,7 +39,7 @@ async function peek(text, embeddings, source, page, prompt, hidden) {
   if (res && res.rows && res.rows[0].count) count = res.rows[0].count;
   if (count <= 0) {
     res = await client.query(`INSERT INTO "${database}"."${table}" (text, embedding, source, page, prompt, hidden, date) VALUES ($1, $2, $3, $4, $5, $6, $7);`, [ text.toLowerCase(), `${JSON.stringify(embeddings)}`, source, page, prompt, hidden, now ]);
-    console.log(`Saved new query: ${data}`);
+    console.log(`Saved new query: ${text}`);
     if (res && res.rows && res.rows[0]) console.log(res.rows[0].message);
   }
   res = await client.query(`SELECT id,text,source,page,date FROM ${table} WHERE prompt ORDER BY embedding <-> $1 LIMIT 10;`, [ `${JSON.stringify(embeddings)}` ]);

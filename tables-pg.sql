@@ -1,4 +1,4 @@
-CREATE TABLE postman (
+CREATE TABLE demo.postman (
         id bigserial NOT NULL,
         embedding vector NULL,
         "text" varchar(2000) NULL,
@@ -9,4 +9,3 @@ CREATE TABLE postman (
         "date" timestamp NULL,
         CONSTRAINT pm_pkey PRIMARY KEY (id)
 );
-# alter table postman alter column date type timestamp;

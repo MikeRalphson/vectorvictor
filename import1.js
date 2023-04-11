@@ -13,11 +13,15 @@ const client = new Client();
 const database = process.env.PGDATABASE;
 const table = process.env.PGTABLE;
 
-// TODO skip YAML front-matter of markdown docs
-// skip code blocks in markdown
-// skip HTML comments
-
-const data = fs.readFileSync(process.argv[2],'utf8').split('\r').join('').split('\n');
+const input = fs.readFileSync(process.argv[2],'utf8').split('\r').join('');
+const data = input.split('\n');
+if (indexOf(input, '---\n') >= 0) { // skip YAML front-matter
+  let line = 1;
+  while (data[line-1] !== '---\n') {
+    data.shift();
+    line++;
+  }
+}
 
 async function getEmbeddings(text) {
   const res = await fetch('https://api.openai.com/v1/embeddings',{
@@ -44,38 +48,52 @@ async function poke(text, embeddings, source, page, prompt, hidden) {
 
 async function main() {
   await client.connect()
-  // const res = await client.query('SET search_path TO mike,public;');
   let stream = '';
   let streams = 0;
   let lineNo = 1;
   let page = 1;
+  let inCodeBlock = false;
   for (let line of data) {
     if (lineNo % 63 === 0) {
       page++;
       lineNo = 1;
     }
-    if (line.length > MAX_CHUNK_SIZE) {
-      process.stdout.write('*');
+    if (line.startsWith('```')) {
+      inCodeBlock = !inCodeBlock;
+      process.stdout.write(inCodeBlock ? '[' : ']');
     }
-    else {
-      process.stdout.write('.');
+    if (line.indexOf('<!--') >= 0) {
+      inComment = true;
+      process.stdout.write('(');
     }
-    if ((stream.length+line.length < MAX_CHUNK_SIZE) || (line === "")) {
-      stream += line.trim()+' ';
+    if (line.indexOf('-->') >= 0) {
+      inComment = false;
+      process.stdout.write(')');
     }
-    else {
-      const words = line.trim().split(' ');
-      do {
-        const word = words.shift();
-        stream += word+' ';
-      } while (stream.length <= MAX_CHUNK_SIZE);
-    }
-    if (stream.length >= MAX_CHUNK_SIZE) {
-      const embeddings = await getEmbeddings(stream);
-      await poke(stream, embeddings, process.argv[2], page, true, false);
-      streams++;
-      const words = stream.split(' ');
-      stream = words.slice(words.length-WORD_OVERLAP,words.length).join(' ');
+    if (!inCodeBlock && !inComment) {
+      if (line.length > MAX_CHUNK_SIZE) {
+        process.stdout.write('*');
+      }
+      else {
+        process.stdout.write('.');
+      }
+      if ((stream.length+line.length < MAX_CHUNK_SIZE) || (line === "")) {
+        stream += line.trim()+' ';
+      }
+      else {
+        const words = line.trim().split(' ');
+        do {
+          const word = words.shift();
+          stream += word+' ';
+        } while (stream.length <= MAX_CHUNK_SIZE);
+      }
+      if (stream.length >= MAX_CHUNK_SIZE) {
+        const embeddings = await getEmbeddings(stream);
+        await poke(stream, embeddings, process.argv[2], page, true, false);
+        streams++;
+        const words = stream.split(' ');
+        stream = words.slice(words.length-WORD_OVERLAP,words.length).join(' ');
+      }
     }
     lineNo++;
   }
