@@ -99,6 +99,7 @@
           msg.text = msg.text.split('```json').join('```json\n');
           msg.text = msg.text.split('```yaml').join('```yaml\n');
           msg.text = msg.text.split('```http').join('```http\n');
+          msg.text = msg.text.split('    ').join('\n\n');
           const html = md2html.makeHtml(msg.text);
           list.innerHTML += `<div class="chat chat-start p-8">
                   <div class="chat-bubble"><small>${msg.id}</small> - ${html} <strong><ul><a href="${msg.source}"><span style="color:#f97316;">${msg.source}</span></a></ul></strong><span style="color:#10b981;"> Page: ${msg.page} Date: ${msg.date}</span></div>
