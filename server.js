@@ -44,8 +44,25 @@ const app = koa(feathers())
         description: 'A simple API with websocket support for querying NL documentation vectors',
         version: '1.0.0',
       },
-      components: { schemas: { messages: {}, messagesList: {} } },
+      components: { schemas: { messages: {
+        type: 'object',
+        properties: {
+          text: { type: 'string' },
+          table: { type: 'string' },
+        }
+      },
+      messagesList: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            id: { type: 'integer' },
+            text: { type: 'string' },
+          }
+        }
+      },
     },
+    }},
     ui: swagger.swaggerUI({ docsPath: '/docs', docsJsonPath: '/openapi.json' }),
   }))
 
