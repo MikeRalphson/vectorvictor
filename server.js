@@ -1,8 +1,24 @@
+import * as url from 'node:url';
+import * as path from 'node:path';
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
 import { feathers } from '@feathersjs/feathers'
 import { koa, rest, bodyParser, errorHandler, serveStatic } from '@feathersjs/koa'
 import socketio from '@feathersjs/socketio'
 
+import Router from '@koa/router';
+import { SwaggerRouter } from 'koa-swagger-decorator';
+
 import { query } from './query.js';
+
+const router = new SwaggerRouter();
+
+router.swagger({
+  title: 'Messages API',
+  version: '1.0.0',
+  description: 'Messages API'
+});
+//router.mapDir(path.resolve(__dirname), {});
 
 class MessageService {
   messages = []
@@ -20,16 +36,21 @@ class MessageService {
       text: JSON.stringify(await query(data.text))
     }
 
-    // Add new message to the list
-    //this.messages.push(message)
+    // Add new message to a new list
     this.messages = [ message ];
 
     return this.messages
   }
 }
 
+class DocsService {
+
+  async find() {
+  }
+}
+
 // Creates an KoaJS compatible Feathers application
-const app = koa(feathers())
+const app = koa(feathers());
 
 // Use the current folder for static file hosting
 app.use(serveStatic('./'))
@@ -44,10 +65,17 @@ app.configure(rest())
 app.configure(socketio())
 // Register our messages service
 app.use('messages', new MessageService())
+app.use('api-docs', new DocsService())
 
 app.service('messages').on('created', (message) => {
   console.log('A new message has been created', message)
 })
+app.service('api-docs').on('created', (docs) => {
+  return {
+    description: 'Messages API',
+    schema: {}
+  };
+});
 
 // Add any new real-time connection to the `everybody` channel
 app.on('connection', (connection) => app.channel('everybody').join(connection))

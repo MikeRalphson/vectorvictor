@@ -85,7 +85,7 @@ async function main(filename) {
       inComment = false;
       process.stdout.write(')');
     }
-    if (!inCodeBlock && !inComment) {
+    if (!inCodeBlock && !inComment && !line.startsWith('#')) {
       if (line.length > MAX_CHUNK_SIZE) {
         process.stdout.write('*');
       }
@@ -110,7 +110,7 @@ async function main(filename) {
         streams++;
         const words = stream.split(' ');
         const prefix = words.slice(WORD_OVERLAP*-1,words.length);
-        stream = prefix ? prefix.join(' ') : '';
+        stream = prefix && prefix.length ? prefix.join(' ') : '';
       }
     }
     lineNo++;
