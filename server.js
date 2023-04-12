@@ -31,9 +31,10 @@ class MessageService {
   async create(data) {
     // The new message is the data text with a unique identifier added
     // using the messages length since it changes whenever we add one
+    if (data.text) console.log(`Querying ${data.table} for "${data.text}"`);
     const message = {
       id: this.messages.length,
-      text: JSON.stringify(await query(data.text))
+      text: JSON.stringify(await query(data.text, data.table))
     }
 
     // Add new message to a new list

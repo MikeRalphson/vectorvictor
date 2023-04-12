@@ -6,10 +6,10 @@ import env from 'dotenv';
 
 env.config();
 const client = new Client();
-const table = process.env.PGTABLE;
+let table = process.env.PGTABLE;
 
 const now = new Date();
-let firstTime = true;
+const map = new Map();
 
 async function getEmbeddings(text) {
   if (text === "") return [];
@@ -47,12 +47,10 @@ async function peek(text, embeddings, source, page, prompt, hidden) {
   return res && res.rows ? res.rows : [];
 }
 
-export async function query(data) {
+export async function query(data, tableName = 'hhg') {
   if (!data) return [];
-  if (firstTime) {
-    await client.connect();
-  }
-  firstTime = false;
+  table = tableName;
+  if (!map.size) map.set(table, await client.connect());
   const embeddings = await getEmbeddings(data);
   const results = await peek(data, embeddings, 'user', 1, false, false);
   return results;
