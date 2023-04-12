@@ -83,4 +83,4 @@ app.on('connection', (connection) => app.channel('everybody').join(connection))
 app.publish((_data) => app.channel('everybody'))
 
 // Start the server
-app.listen(3031).then(() => console.log('Feathers server listening on localhost:3031'))
+app.listen(3031).then(() => console.log('Vector-Victor server listening on http://localhost:3031'))

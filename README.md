@@ -2,6 +2,8 @@
 
 ![logo](./logo.webp)
 
+![screenshot](./screenshot.webp)
+
 ## SQL tables needed
 
 * See `tables-*.sql`

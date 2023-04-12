@@ -21,7 +21,7 @@
         <form class="input-group overflow-hidden" onsubmit="sendMessage(event)">
           <input name="message" id="message-text" type="text" class="input input-bordered w-full" />
           <button type="submit" class="btn">Search</button>&nbsp;&nbsp;
-          <button class="btn">Clear</button>
+          <button class="btn" id="clearButton">Clear</button>
         </form>
       <h2 class="pt-1 pb-2 text-lg">Responses</h2>
       <ul id="list"></ul>
@@ -48,8 +48,6 @@
         await app.service('messages').create({
           text: messageInput.value
         })
-
-        messageInput.value = ''
       }
 
       // Renders a single message on the page
@@ -73,6 +71,17 @@
 
         // Add any newly created message to the list in real-time
         app.service('messages').on('created', addMessage);
+
+        const clear = document.getElementById('clearButton');
+        const messageInput = document.getElementById('message-text')
+        clear.onclick = function(e){
+          messageInput.value = ''
+        };
+        clear.onkeydown = async function(e) {
+          if (e.keyCode == 13) {
+            await sendMessage(e);
+          }
+        };
       }
 
       main()
