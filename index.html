@@ -6,7 +6,9 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@2.46.1/dist/full.css" rel="stylesheet" type="text/css" />
     <link rel="stylesheet" href="https://feathersjs.com/feathers-chat.css" />
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/a11y-dark.min.css" integrity="sha512-Vj6gPCk8EZlqnoveEyuGyYaWZ1+jyjMPg8g4shwyyNlRQl6d3L9At02ZHQr5K6s5duZl/+YKMnM3/8pDhoUphg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.rawgit.com/showdownjs/showdown/2.1.0/dist/showdown.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js" integrity="sha512-bgHRAiTjGrzHzLyKOnpFvaEpGzJet3z4tZnXGjpsCcqOnAH6VGUx9frc5bcIhKTVLEiCO6vEhNAgx5jtLUYrfA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <style>
       a {
         text-decoration-line: underline !important;
@@ -60,7 +62,8 @@
       // Initialize a Feathers app
       const app = feathers();
 
-      const md2html = new showdown.Converter({ tables: true, moreStyling: true, emoji: true, parseImgDimensions: true, ghMentions: true, openLinksInNewWindow: true, ellipsis: true });
+      showdown.setFlavor('github');
+      const md2html = new showdown.Converter({ tables: true, moreStyling: true, emoji: true, parseImgDimensions: true, ghMentions: true, openLinksInNewWindow: true, ellipsis: true, omitExtraWLInCodeBlocks: true, underline: true, simplifiedAutoLink: true, strikethrough: true, tasklists: true, splitAdjacentBlockquotes: true });
 
       // Register socket.io to talk to our server
       app.configure(feathers.socketio(socket));
@@ -92,6 +95,10 @@
         for (let msg of messages) {
           msg.text = msg.text.split(' #').join('\n\n#');
           msg.text = msg.text.split(' * ').join('\n\n* ');
+          msg.text = msg.text.split(' ```').join('\n\n```');
+          msg.text = msg.text.split('```json').join('```json\n');
+          msg.text = msg.text.split('```yaml').join('```yaml\n');
+          msg.text = msg.text.split('```http').join('```http\n');
           const html = md2html.makeHtml(msg.text);
           list.innerHTML += `<div class="chat chat-start p-8">
                   <div class="chat-bubble"><small>${msg.id}</small> - ${html} <strong><ul><a href="${msg.source}"><span style="color:#f97316;">${msg.source}</span></a></ul></strong><span style="color:#10b981;"> Page: ${msg.page} Date: ${msg.date}</span></div>
@@ -100,6 +107,8 @@
       }
 
       const main = async () => {
+        hljs.highlightAll();
+
         // Find all existing messages
         const messages = await app.service('messages').find()
 
