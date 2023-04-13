@@ -21,7 +21,8 @@ const html2md = new TurndownService()
 
 const table = process.env.PGTABLE;
 
-// TODO process jsx files by importing their default export and converting html to markdown
+const myObj = { html: '' };
+vm.createContext(myObj);
 
 try {
   let stats = fs.statSync(process.argv[2]);
@@ -68,15 +69,16 @@ async function linker(specifier, referencingModule) {
   if (specifier === 'react') {
     return react;
   }
-  return new vm.SyntheticModule(['default','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function() { return {} });
-  //return dummy;
+  return new vm.SyntheticModule(['default','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function() { return {} }, { context: myObj }); // we leave identifier unset as it varies
 }
 
 async function main(filename) {
-  dummy = new vm.SourceTextModule(fs.readFileSync('./dummy1.mjs','utf8'));
+  dummy = new vm.SourceTextModule(fs.readFileSync('./shim.mjs','utf8'),
+    { identifier: 'shim', context: myObj });
   dummy.link(linker);
-  dummy3 = fs.readFileSync('./dummy3.cjs','utf8');
-  react = new vm.SourceTextModule(fs.readFileSync('./dummy2.mjs','utf8')+fs.readFileSync('./preact.js','utf8'));
+  dummy3 = fs.readFileSync('./jsx-header.cjs','utf8');
+  react = new vm.SourceTextModule(fs.readFileSync('./preact-header.mjs','utf8')+fs.readFileSync('./preact.js','utf8'),
+    { identifier: 'preact', context: myObj });
 
   react.link(linker);
 
@@ -87,23 +89,26 @@ async function main(filename) {
     input = html2md.turndown(input);
   }
   if (process.argv[2].endsWith('.jsx')) {
-    if (process.argv[2].indexOf('404') >= 0) {
+    if (process.argv[2].indexOf('404x') >= 0) {
       console.info('Skipping 404 page');
       input = '';
     }
     else {
       console.log('Converting jsx input...');
-      const jsx = new vm.SourceTextModule(transform(dummy3+input).code);
+      const jsx = new vm.SourceTextModule(transform(dummy3+input).code,
+        {identifier: 'jsx', context: myObj, });
       await jsx.link(linker);
       try {
         await jsx.evaluate();
       }
       catch (ex) {
         console.log(ex);
+        process.exit(1);
       }
-      console.log(util.inspect(jsx));
-      process.exit(1);
-      input = html2md.turndown(input);
+      console.log('here');
+      vm.runInContext(jsx.NotFoundPage(),myObj);
+      console.log(myObj.html);
+      input = html2md.turndown(myObj.html);
     }
   }
 
