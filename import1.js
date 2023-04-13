@@ -10,7 +10,7 @@ import TurndownService from 'turndown';
 import { transform } from 'buble';
 
 let now = new Date();
-let dummy, react, dummy3; // virtual modules for React/JSX rendering
+let dummy, react, dummy3, jsx; // virtual modules for React/JSX rendering
 const MAX_CHUNK_SIZE = 350;
 const WORD_OVERLAP = 4;
 
@@ -66,10 +66,16 @@ async function poke(text, embeddings, source, page, prompt, hidden) {
 }
 
 async function linker(specifier, referencingModule) {
+  console.log('Linking',specifier,'from',referencingModule.identifier);
   if (specifier === 'react') {
+    console.log(react);
     return react;
   }
-  return new vm.SyntheticModule(['default','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function() { return {} }, { context: myObj }); // we leave identifier unset as it varies
+  if (specifier === 'jsx') {
+    console.log(jsx);
+    return jsx;
+  }
+  return await new vm.SyntheticModule(['default','React','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function() { return {} }, { context: myObj }); // we leave identifier unset as it varies
 }
 
 async function main(filename) {
@@ -77,10 +83,9 @@ async function main(filename) {
     { identifier: 'shim', context: myObj });
   dummy.link(linker);
   dummy3 = fs.readFileSync('./jsx-header.cjs','utf8');
-  react = new vm.SourceTextModule(fs.readFileSync('./preact-header.mjs','utf8')+fs.readFileSync('./preact.js','utf8'),
-    { identifier: 'preact', context: myObj });
+  react = new vm.SourceTextModule(fs.readFileSync('./react.js','utf8'), { identifier: 'react', context: myObj });
 
-  react.link(linker);
+  await react.link(linker);
 
   console.log(`Importing ${filename}`);
   let input = fs.readFileSync(process.argv[2],'utf8').split('\r').join('');
@@ -95,19 +100,22 @@ async function main(filename) {
     }
     else {
       console.log('Converting jsx input...');
-      const jsx = new vm.SourceTextModule(transform(dummy3+input).code,
+      jsx = new vm.SourceTextModule(transform(/*dummy3+*/input).code,
         {identifier: 'jsx', context: myObj, });
       await jsx.link(linker);
-      try {
-        await jsx.evaluate();
-      }
-      catch (ex) {
-        console.log(ex);
-        process.exit(1);
-      }
-      console.log('here');
-      vm.runInContext(jsx.NotFoundPage(),myObj);
-      console.log(myObj.html);
+      //try {
+      //  await jsx.evaluate();
+      //}
+      //catch (ex) {
+      //  console.log(ex);
+      //  process.exit(1);
+      //}
+      const runner = new vm.SourceTextModule('/*import React from "react";*/import * as jsx from "jsx";html = jsx.default();',{
+        identifier: 'runner', context: myObj
+      });
+      await runner.link(linker);
+      console.log(await runner.evaluate());
+      console.log('modh',myObj.html);
       input = html2md.turndown(myObj.html);
     }
   }
