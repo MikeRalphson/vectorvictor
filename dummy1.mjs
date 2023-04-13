@@ -1,0 +1,24 @@
+export default function def() { return {}; };
+export function Configure() { return true; };
+export function Snippet() { return true; };
+export function Highlight() { return true; };
+export function InstantSearch() { return true; };
+export function useInstantSearch() { return true; };
+export function Divider() { return true; };
+export function Hits() { return true; };
+export function Pagination() { return true; };
+export function SearchBox() { return true; };
+export function history() { return true; };
+export function theme() { return true; };
+export function v4() { return true; };
+export function BaseButton() { return true; };
+export function BaseLink() { return true; };
+export function BaseLinkStyles() { return true; };
+export function SectionStyles() { return true; };
+export function VideoComponent() { return true; };
+export function LandingCard() { return true; };
+export function OutboundLink() { return true; };
+
+//export const styled = {};
+//styled.div = function(s) { return s; };
+//styled.section = function(s) { return s; };

@@ -1,29 +1,34 @@
 import * as fs from 'node:fs';
+import * as util from 'node:util';
+import vm from 'node:vm';
+
 import pg from 'pg';
 const { Client } = pg;
 import env from 'dotenv';
+import * as yaml from 'yaml';
+import TurndownService from 'turndown';
+import { transform } from 'buble';
 
-const now = new Date();
-const MAX_CHUNK_SIZE = 250;
-const WORD_OVERLAP = 2;
+let now = new Date();
+let dummy, react, dummy3; // virtual modules for React/JSX rendering
+const MAX_CHUNK_SIZE = 350;
+const WORD_OVERLAP = 4;
 
 env.config();
 const client = new Client();
 
+const html2md = new TurndownService()
+
 const table = process.env.PGTABLE;
 
-const input = fs.readFileSync(process.argv[2],'utf8').split('\r').join('');
+// TODO process jsx files by importing their default export and converting html to markdown
 
-const data = input.split('\n');
-if (input.indexOf('---\n') >= 0) { // skip YAML front-matter
-  console.log('Skipping YAML front-matter');
-  let line = 0;
-  let skip = 0;
-  while (!data[line].startsWith('---')) {
-    line++;
-    skip++;
-  }
-  if (skip) data.shift(skip);
+try {
+  let stats = fs.statSync(process.argv[2]);
+  if (stats && stats.mtime) now = new Date(stats.mtime);
+}
+catch (ex) {
+  console.warn(ex.message);
 }
 
 async function getEmbeddings(text) {
@@ -59,8 +64,72 @@ async function poke(text, embeddings, source, page, prompt, hidden) {
   return true;
 }
 
+async function linker(specifier, referencingModule) {
+  if (specifier === 'react') {
+    return react;
+  }
+  return new vm.SyntheticModule(['default','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function() { return {} });
+  //return dummy;
+}
+
 async function main(filename) {
+  dummy = new vm.SourceTextModule(fs.readFileSync('./dummy1.mjs','utf8'));
+  dummy.link(linker);
+  dummy3 = fs.readFileSync('./dummy3.cjs','utf8');
+  react = new vm.SourceTextModule(fs.readFileSync('./dummy2.mjs','utf8')+fs.readFileSync('./preact.js','utf8'));
+
+  react.link(linker);
+
   console.log(`Importing ${filename}`);
+  let input = fs.readFileSync(process.argv[2],'utf8').split('\r').join('');
+  if (process.argv[2].endsWith('.html')) {
+    console.log('Converting html input...');
+    input = html2md.turndown(input);
+  }
+  if (process.argv[2].endsWith('.jsx')) {
+    if (process.argv[2].indexOf('404') >= 0) {
+      console.info('Skipping 404 page');
+      input = '';
+    }
+    else {
+      console.log('Converting jsx input...');
+      const jsx = new vm.SourceTextModule(transform(dummy3+input).code);
+      await jsx.link(linker);
+      try {
+        await jsx.evaluate();
+      }
+      catch (ex) {
+        console.log(ex);
+      }
+      console.log(util.inspect(jsx));
+      process.exit(1);
+      input = html2md.turndown(input);
+    }
+  }
+
+  const data = input.split('\n');
+  if (input.indexOf('---\n') >= 0) {
+    let line = 1; // skip at least one line, i.e. is file starts with --- as well
+    let skip = 1;
+    while (!data[line].startsWith('---')) {
+      line++;
+      skip++;
+    }
+    if (skip) {
+      console.log(`Skipping ${skip} lines of YAML front-matter`);
+      const yfmText = data.splice(0,skip).join('\n');
+      let yfm = {};
+      try {
+        yfm = yaml.parse(yfmText);
+      }
+      catch (ex) {
+        console.warn(ex.message);
+      }
+      let newDate;
+      if (yaml.updated) newDate = new Date(yaml.updated);
+      if (newDate) console.log(`Setting date to ${newDate.toString()}`);
+    }
+  }
   await client.connect()
   let stream = '';
   let streams = 0;
