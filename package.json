@@ -16,7 +16,6 @@
     "better-sqlite3": "^8.3.0",
     "buble": "^0.20.0",
     "dotenv": "^16.0.3",
-    "es-react": "^16.13.1",
     "feathers-swagger": "^3.0.0",
     "pg": "^8.10.0",
     "sqlite-vss": "^0.0.3",

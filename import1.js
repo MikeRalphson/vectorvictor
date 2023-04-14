@@ -1,5 +1,4 @@
 import * as fs from 'node:fs';
-import * as util from 'node:util';
 import vm from 'node:vm';
 
 import pg from 'pg';
@@ -11,7 +10,7 @@ import turndownPluginGfm from 'turndown-plugin-gfm';
 import { transform } from 'buble';
 
 let now = new Date();
-let react, reactP, jsx; // virtual modules for React/JSX rendering
+let react, jsx; // virtual modules for React/JSX rendering
 const MAX_CHUNK_SIZE = 350;
 const WORD_OVERLAP = 4;
 
@@ -77,17 +76,16 @@ async function poke(text, embeddings, source, page, prompt, hidden) {
 }
 
 async function linker(specifier, referencingModule) {
-  console.log('Linking',specifier,'from',referencingModule.identifier);
   if (specifier === 'react') {
+    console.log('Using',specifier,'from',referencingModule.identifier);
     return react;
   }
-  if (specifier.indexOf('react.production') >= 0) {
-    return reactP;
-  }
   if (specifier === 'jsx') {
+    console.log('Using',specifier,'from',referencingModule.identifier);
     return jsx;
   }
   if (specifier.indexOf('styled')>=0) {
+    console.log('Synthesisng',specifier,'from',referencingModule.identifier);
     const styled = new vm.SyntheticModule(['default'],function() {
       console.log('In styled shim...');
       styled.setExport('default', { div: () => {}, section: () => {}, hr: () => {} });
@@ -95,22 +93,14 @@ async function linker(specifier, referencingModule) {
     await styled.link(linker);
     return styled;
   }
+  console.log('Shimming',specifier,'from',referencingModule.identifier);
   const shim = new vm.SyntheticModule(['default','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function() { return {} }, { context: myObj }); // we leave identifier unset as it varies
   await shim.link(linker);
   return shim;
 }
 
 async function main(filename) {
-  console.log(util.inspect(vm));
-  //dummy = new vm.SourceTextModule(fs.readFileSync('./shim.mjs','utf8'),
-  //  { identifier: 'shim', context: myObj });
-  //await dummy.link(linker);
-  let reactSrc = fs.readFileSync('./node_modules/es-react/react.production.min-8d2700a6.js','utf8');
-  reactP = new vm.SourceTextModule(reactSrc,
-    { identifier: 'react.production', context: myObj });
-  await reactP.link(linker);
-
-  reactSrc = fs.readFileSync('./node_modules/es-react/react.js','utf8');
+  let reactSrc = fs.readFileSync('./preact.mjs','utf8');
   react = new vm.SourceTextModule(reactSrc,
     { identifier: 'react', context: myObj });
   await react.link(linker);
@@ -129,17 +119,17 @@ async function main(filename) {
     else {
       console.log('Converting jsx input...');
       let jsxc = transform(input, { transforms: { moduleImport: false, moduleExport: false, dangerousTaggedTemplateString: true } }).code;
+      jsxc = jsxc.replace("import React from 'react';", 'import * as React from "react";');
       fs.writeFileSync('./temp.mjs',jsxc,'utf8');
       jsx = new vm.SourceTextModule(jsxc, {identifier: 'jsx', context: myObj, });
       await jsx.link(linker);
-      const runner = new vm.SourceTextModule('import * as jsx from "jsx"; import React from "react";const comp = new React.Component(); html = JSON.stringify(jsx.default(comp));',{
+      const runner = new vm.SourceTextModule('import * as jsx from "jsx"; import * as React from "react";const comp = {}; const component = new jsx.default(); html = JSON.stringify(component.render(),null,2);',{
         identifier: 'runner', context: myObj
       });
       await runner.link(linker);
-      //vm.createContext(context);
       await runner.evaluate();
-      console.log('modh',myObj);
-      input = html2md.turndown(myObj.html);
+      console.log('myObj.html',myObj);
+      input = html2md.turndown(myObj.html||'Failed to render');
     }
   }
 
