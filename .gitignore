@@ -4,8 +4,7 @@ node_modules/
 dev/
 *.py
 *.json
-*.sh
 backup*
-temp.mjs
-react??.js
-react.mjs
+jsx.mjs
+html.txt
+markdown.md

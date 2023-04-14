@@ -8,9 +8,10 @@ import * as yaml from 'yaml';
 import TurndownService from 'turndown';
 import turndownPluginGfm from 'turndown-plugin-gfm';
 import { transform } from 'buble';
+import { render } from 'preact-render-to-string';
 
 let now = new Date();
-let react, jsx; // virtual modules for React/JSX rendering
+let react, jsx; // virtual modules for (p)react/JSX rendering
 const MAX_CHUNK_SIZE = 350;
 const WORD_OVERLAP = 4;
 
@@ -18,7 +19,7 @@ env.config();
 const client = new Client();
 
 const html2md = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', preformattedCode: true });
-html2md.keep(['del', 'ins', 'h1']);
+html2md.keep(['del', 'ins']);
 const gfm = turndownPluginGfm.gfm
 const tables = turndownPluginGfm.tables
 const strikethrough = turndownPluginGfm.strikethrough
@@ -94,7 +95,7 @@ async function linker(specifier, referencingModule) {
     return styled;
   }
   console.log('Shimming',specifier,'from',referencingModule.identifier);
-  const shim = new vm.SyntheticModule(['default','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function() { return {} }, { context: myObj }); // we leave identifier unset as it varies
+  const shim = new vm.SyntheticModule(['default','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function(a) { return a }, { context: myObj }); // we leave identifier unset as it varies
   await shim.link(linker);
   return shim;
 }
@@ -120,16 +121,19 @@ async function main(filename) {
       console.log('Converting jsx input...');
       let jsxc = transform(input, { transforms: { moduleImport: false, moduleExport: false, dangerousTaggedTemplateString: true } }).code;
       jsxc = jsxc.replace("import React from 'react';", 'import * as React from "react";');
-      fs.writeFileSync('./temp.mjs',jsxc,'utf8');
+      fs.writeFileSync('./jsx.mjs',jsxc,'utf8');
       jsx = new vm.SourceTextModule(jsxc, {identifier: 'jsx', context: myObj, });
       await jsx.link(linker);
-      const runner = new vm.SourceTextModule('import * as jsx from "jsx"; import * as React from "react";const comp = {}; const component = new jsx.default(); html = JSON.stringify(component.render(),null,2);',{
+      const runner = new vm.SourceTextModule('import comp from "jsx";const component = new comp(); html = component.render();',{
         identifier: 'runner', context: myObj
       });
       await runner.link(linker);
       await runner.evaluate();
-      console.log('myObj.html',myObj);
-      input = html2md.turndown(myObj.html||'Failed to render');
+      console.log('Converting jsx output...');
+      const html = render(myObj.html);
+      fs.writeFileSync('./html.txt',html,'utf8');
+      input = html2md.turndown(html||'Failed to render');
+      fs.writeFileSync('./markdown.md',input,'utf8');
     }
   }
 
