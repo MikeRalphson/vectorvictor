@@ -103,8 +103,11 @@
           msg.text = msg.text.split('```http').join('```http\n');
           msg.text = msg.text.split('    ').join('\n\n');
           const html = md2html.makeHtml(msg.text);
+          if (msg.source.indexOf('postman-beta.com') >= 0) {
+            msg.source = 'https://blog.postman.com?'+msg.source.split('?')[1];
+          }
           list.innerHTML += `<div class="chat chat-start p-8">
-                  <div class="chat-bubble"><small>${msg.id}</small> - ${html} <strong><ul><a href="${msg.source}"><span style="color:#f97316;">${msg.source}</span></a></ul></strong><span style="color:#10b981;"> Page: ${msg.page} Date: ${msg.date}</span></div>
+                  <div class="chat-bubble"><small>${msg.id}</small> - ${html} <strong><ul><a href="${msg.source}" target="_blank"><span style="color:#f97316;">${msg.source}</span></a></ul></strong><span style="color:#10b981;"> Page: ${msg.page} Date: ${msg.date}</span></div>
           </div>`;
         }
       }

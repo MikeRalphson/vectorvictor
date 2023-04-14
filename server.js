@@ -67,7 +67,9 @@ const app = koa(feathers())
   }))
 
 // Use the current folder for static file hosting
-app.use(serveStatic('./'))
+app.use(serveStatic('./'));
+app.use(serveStatic('./postman-docs/'));
+app.use(serveStatic('./open-technologies-docs/'));
 // Register the error handle
 app.use(errorHandler())
 // Parse JSON request bodies
