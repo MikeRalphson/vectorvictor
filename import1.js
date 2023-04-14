@@ -127,8 +127,8 @@ async function main(filename) {
         identifier: 'runner', context: myObj
       });
       await runner.link(linker);
-      const react = new vm.Script(react, { importModuleDynamically: function (spec, context, assert) {
-        return true;
+      const react = new vm.Script('const React = require("./react.js");', { importModuleDynamically: function (spec, context, assert) {
+        return myObj;
       }, filename: "react.js" });
       vm.createContext(context);
       react.runInContext(context);
