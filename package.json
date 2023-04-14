@@ -13,6 +13,7 @@
     "@feathersjs/feathers": "^5.0.3",
     "@feathersjs/koa": "^5.0.3",
     "@feathersjs/socketio": "^5.0.3",
+    "@mdx-js/mdx": "^2.3.0",
     "better-sqlite3": "^8.3.0",
     "buble": "^0.20.0",
     "dotenv": "^16.0.3",

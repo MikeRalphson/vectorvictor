@@ -1,15 +1,17 @@
 import * as fs from 'node:fs';
 import vm from 'node:vm';
 
-import { doit, connect, disconnect } from './lib/import.js';
-
 import TurndownService from 'turndown';
 import turndownPluginGfm from 'turndown-plugin-gfm';
 import { transform } from 'buble';
 import { render } from 'preact-render-to-string';
+import { compile } from '@mdx-js/mdx'
+
+import { doit, connect, disconnect } from './lib/import.js';
 
 let now = new Date();
 let react, jsx; // virtual modules for (p)react/JSX rendering
+let mdx; // virtual module for MDX rendering
 
 const html2md = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', preformattedCode: true });
 html2md.keep(['del', 'ins']);
@@ -55,7 +57,7 @@ async function linker(specifier, referencingModule) {
     return styled;
   }
   console.log('Shimming',specifier,'from',referencingModule.identifier);
-  const shim = new vm.SyntheticModule(['default','Configure','ContextualStyles','DocWrapper','RightColumnWrapper','CallOut','Feature','OrderedListStyles','UnorderedListStyles','Paragraph','TextSection','SideXSide','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink','leftNavItems','algoliasearch','navigate','graphql','withPrefix'],function(a) { const c = function(b){return b;}; }, { context: myObj }); // we leave identifier unset as it varies
+  const shim = new vm.SyntheticModule(['default','jsx','jsxs','Chart','Fragment','Configure','ContextualStyles','DocWrapper','RightColumnWrapper','CallOut','Feature','OrderedListStyles','UnorderedListStyles','Paragraph','TextSection','SideXSide','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink','leftNavItems','algoliasearch','navigate','graphql','withPrefix'],function(a) { const c = function(b){return b;}; }, { context: myObj }); // we leave identifier unset as it varies
   await shim.link(linker);
   return shim;
 }
@@ -69,6 +71,26 @@ async function main(filename) {
   await connect();
   console.log(`Importing ${filename}`);
   let input = fs.readFileSync(process.argv[2],'utf8').split('\r').join('');
+  if (process.argv[2].endsWith('.mdx')) {
+    const compiled = await compile(input);
+    const mdxc = String(compiled);
+    fs.writeFileSync('./mdx.mjs',mdxc,'utf8');
+    mdx = new vm.SourceTextModule(mdxc,
+      { identifier: 'mdx', context: myObj });
+    await mdx.link(linker);
+    const runner = new vm.SourceTextModule('import mdx from "mdx";html = mdx();',{
+      identifier: 'runner', context: myObj
+    });
+    await runner.link(linker);
+    try {
+      await runner.evaluate();
+    }
+    catch (ex) {
+      console.warn(ex);
+    }
+    console.log('Converting mdx output...');
+    process.exit(1);
+  }
   if (process.argv[2].endsWith('.jsx')) {
     if (process.argv[2].indexOf('404.jsx') >= 0 || process.argv[2].indexOf('search.jsx') >= 0) {
       console.info('Skipping page rendering due to 404.jsx or search.jsx');
