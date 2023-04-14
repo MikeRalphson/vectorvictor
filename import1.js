@@ -11,7 +11,7 @@ import turndownPluginGfm from 'turndown-plugin-gfm';
 import { transform } from 'buble';
 
 let now = new Date();
-let dummy, react, dummy3, jsx; // virtual modules for React/JSX rendering
+let react, reactP, jsx; // virtual modules for React/JSX rendering
 const MAX_CHUNK_SIZE = 350;
 const WORD_OVERLAP = 4;
 
@@ -32,7 +32,7 @@ html2md.use([tables, strikethrough]);
 
 const table = process.env.PGTABLE;
 
-const myObj = { html: '<h1>Hello, World</h1>' };
+const myObj = { html: 'Hello, World' };
 vm.createContext(myObj);
 
 try {
@@ -81,6 +81,9 @@ async function linker(specifier, referencingModule) {
   if (specifier === 'react') {
     return react;
   }
+  if (specifier.indexOf('react.production') >= 0) {
+    return reactP;
+  }
   if (specifier === 'jsx') {
     return jsx;
   }
@@ -99,12 +102,18 @@ async function linker(specifier, referencingModule) {
 
 async function main(filename) {
   console.log(util.inspect(vm));
-  dummy = new vm.SourceTextModule(fs.readFileSync('./shim.mjs','utf8'),
-    { identifier: 'shim', context: myObj });
-  await dummy.link(linker);
-  const reactSrc = fs.readFileSync('./react.js','utf8');
-  //react = new vm.SourceTextModule(fs.readFileSync('./react.js','utf8'), { identifier: 'react', context: myObj });
-  //await react.link(linker);
+  //dummy = new vm.SourceTextModule(fs.readFileSync('./shim.mjs','utf8'),
+  //  { identifier: 'shim', context: myObj });
+  //await dummy.link(linker);
+  let reactSrc = fs.readFileSync('./node_modules/es-react/react.production.min-8d2700a6.js','utf8');
+  reactP = new vm.SourceTextModule(reactSrc,
+    { identifier: 'react.production', context: myObj });
+  await reactP.link(linker);
+
+  reactSrc = fs.readFileSync('./node_modules/es-react/react.js','utf8');
+  react = new vm.SourceTextModule(reactSrc,
+    { identifier: 'react', context: myObj });
+  await react.link(linker);
 
   console.log(`Importing ${filename}`);
   let input = fs.readFileSync(process.argv[2],'utf8').split('\r').join('');
@@ -119,20 +128,15 @@ async function main(filename) {
     }
     else {
       console.log('Converting jsx input...');
-      dummy3 = fs.readFileSync('./jsx-header.cjs','utf8');
-      let jsxc = dummy3+transform(input, { transforms: { moduleImport: false, moduleExport: false, dangerousTaggedTemplateString: true } }).code;
+      let jsxc = transform(input, { transforms: { moduleImport: false, moduleExport: false, dangerousTaggedTemplateString: true } }).code;
       fs.writeFileSync('./temp.mjs',jsxc,'utf8');
       jsx = new vm.SourceTextModule(jsxc, {identifier: 'jsx', context: myObj, });
       await jsx.link(linker);
-      const runner = new vm.SourceTextModule('import * as jsx from "jsx";console.log(jsx.render());',{
+      const runner = new vm.SourceTextModule('import * as jsx from "jsx"; import React from "react";const comp = new React.Component(); html = JSON.stringify(jsx.default(comp));',{
         identifier: 'runner', context: myObj
       });
       await runner.link(linker);
-      const react = new vm.Script('const React = require("./react.js");', { importModuleDynamically: function (spec, context, assert) {
-        return myObj;
-      }, filename: "react.js" });
-      vm.createContext(context);
-      react.runInContext(context);
+      //vm.createContext(context);
       await runner.evaluate();
       console.log('modh',myObj);
       input = html2md.turndown(myObj.html);
