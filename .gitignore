@@ -5,6 +5,7 @@ dev/
 *.py
 *.json
 *.sh
+backup*
 temp.mjs
 react??.js
 react.mjs

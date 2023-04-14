@@ -98,6 +98,7 @@ async function linker(specifier, referencingModule) {
 }
 
 async function main(filename) {
+  console.log(util.inspect(vm));
   dummy = new vm.SourceTextModule(fs.readFileSync('./shim.mjs','utf8'),
     { identifier: 'shim', context: myObj });
   await dummy.link(linker);
@@ -119,7 +120,7 @@ async function main(filename) {
     else {
       console.log('Converting jsx input...');
       dummy3 = fs.readFileSync('./jsx-header.cjs','utf8');
-      let jsxc = dummy3+transform(input).code;
+      let jsxc = dummy3+transform(input, { transforms: { moduleImport: false, moduleExport: false, dangerousTaggedTemplateString: true } }).code;
       fs.writeFileSync('./temp.mjs',jsxc,'utf8');
       jsx = new vm.SourceTextModule(jsxc, {identifier: 'jsx', context: myObj, });
       await jsx.link(linker);
