@@ -5,3 +5,6 @@ dev/
 *.py
 *.json
 *.sh
+temp.mjs
+react??.js
+react.mjs

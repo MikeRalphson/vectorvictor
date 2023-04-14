@@ -7,6 +7,7 @@ const { Client } = pg;
 import env from 'dotenv';
 import * as yaml from 'yaml';
 import TurndownService from 'turndown';
+import turndownPluginGfm from 'turndown-plugin-gfm';
 import { transform } from 'buble';
 
 let now = new Date();
@@ -17,11 +18,21 @@ const WORD_OVERLAP = 4;
 env.config();
 const client = new Client();
 
-const html2md = new TurndownService()
+const html2md = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', preformattedCode: true });
+html2md.keep(['del', 'ins', 'h1']);
+const gfm = turndownPluginGfm.gfm
+const tables = turndownPluginGfm.tables
+const strikethrough = turndownPluginGfm.strikethrough
+
+// Use the gfm plugin
+html2md.use(gfm);
+
+// Use the table and strikethrough plugins only
+html2md.use([tables, strikethrough]);
 
 const table = process.env.PGTABLE;
 
-const myObj = { html: '' };
+const myObj = { html: '<h1>Hello, World</h1>' };
 vm.createContext(myObj);
 
 try {
@@ -68,24 +79,31 @@ async function poke(text, embeddings, source, page, prompt, hidden) {
 async function linker(specifier, referencingModule) {
   console.log('Linking',specifier,'from',referencingModule.identifier);
   if (specifier === 'react') {
-    console.log(react);
     return react;
   }
   if (specifier === 'jsx') {
-    console.log(jsx);
     return jsx;
   }
-  return await new vm.SyntheticModule(['default','React','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function() { return {} }, { context: myObj }); // we leave identifier unset as it varies
+  if (specifier.indexOf('styled')>=0) {
+    const styled = new vm.SyntheticModule(['default'],function() {
+      console.log('In styled shim...');
+      styled.setExport('default', { div: () => {}, section: () => {}, hr: () => {} });
+    }, { identifier: 'styled', context: myObj });
+    await styled.link(linker);
+    return styled;
+  }
+  const shim = new vm.SyntheticModule(['default','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function() { return {} }, { context: myObj }); // we leave identifier unset as it varies
+  await shim.link(linker);
+  return shim;
 }
 
 async function main(filename) {
   dummy = new vm.SourceTextModule(fs.readFileSync('./shim.mjs','utf8'),
     { identifier: 'shim', context: myObj });
-  dummy.link(linker);
-  dummy3 = fs.readFileSync('./jsx-header.cjs','utf8');
-  react = new vm.SourceTextModule(fs.readFileSync('./react.js','utf8'), { identifier: 'react', context: myObj });
-
-  await react.link(linker);
+  await dummy.link(linker);
+  const reactSrc = fs.readFileSync('./react.js','utf8');
+  //react = new vm.SourceTextModule(fs.readFileSync('./react.js','utf8'), { identifier: 'react', context: myObj });
+  //await react.link(linker);
 
   console.log(`Importing ${filename}`);
   let input = fs.readFileSync(process.argv[2],'utf8').split('\r').join('');
@@ -100,22 +118,22 @@ async function main(filename) {
     }
     else {
       console.log('Converting jsx input...');
-      jsx = new vm.SourceTextModule(transform(/*dummy3+*/input).code,
-        {identifier: 'jsx', context: myObj, });
+      dummy3 = fs.readFileSync('./jsx-header.cjs','utf8');
+      let jsxc = dummy3+transform(input).code;
+      fs.writeFileSync('./temp.mjs',jsxc,'utf8');
+      jsx = new vm.SourceTextModule(jsxc, {identifier: 'jsx', context: myObj, });
       await jsx.link(linker);
-      //try {
-      //  await jsx.evaluate();
-      //}
-      //catch (ex) {
-      //  console.log(ex);
-      //  process.exit(1);
-      //}
-      const runner = new vm.SourceTextModule('/*import React from "react";*/import * as jsx from "jsx";html = jsx.default();',{
+      const runner = new vm.SourceTextModule('import * as jsx from "jsx";console.log(jsx.render());',{
         identifier: 'runner', context: myObj
       });
       await runner.link(linker);
-      console.log(await runner.evaluate());
-      console.log('modh',myObj.html);
+      const react = new vm.Script(react, { importModuleDynamically: function (spec, context, assert) {
+        return true;
+      }, filename: "react.js" });
+      vm.createContext(context);
+      react.runInContext(context);
+      await runner.evaluate();
+      console.log('modh',myObj);
       input = html2md.turndown(myObj.html);
     }
   }

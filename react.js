@@ -7,6 +7,7 @@
  * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
+
 (function (global, factory) {
   typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
   typeof define === 'function' && define.amd ? define(['exports'], factory) :
@@ -3338,7 +3339,5 @@
   exports.useSyncExternalStore = useSyncExternalStore;
   exports.useTransition = useTransition;
   exports.version = ReactVersion;
-  exports.default = ReactVersion;
-  exports.React = ReactVersion;
 
 })));

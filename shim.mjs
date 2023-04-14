@@ -18,7 +18,3 @@ export function SectionStyles() { return true; };
 export function VideoComponent() { return true; };
 export function LandingCard() { return true; };
 export function OutboundLink() { return true; };
-
-//export const styled = {};
-//styled.div = function(s) { return s; };
-//styled.section = function(s) { return s; };
