@@ -124,7 +124,7 @@ async function main(filename) {
       fs.writeFileSync('./jsx.mjs',jsxc,'utf8');
       jsx = new vm.SourceTextModule(jsxc, {identifier: 'jsx', context: myObj, });
       await jsx.link(linker);
-      const runner = new vm.SourceTextModule('import comp from "jsx";const component = new comp(); html = component.render();',{
+      const runner = new vm.SourceTextModule('import comp from "jsx";const component = new comp(); html = component.render ? component.render(): comp();',{
         identifier: 'runner', context: myObj
       });
       await runner.link(linker);
