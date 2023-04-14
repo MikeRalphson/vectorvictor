@@ -32,7 +32,7 @@ html2md.use([tables, strikethrough]);
 
 const table = process.env.PGTABLE;
 
-const myObj = { html: 'Hello, World' };
+const myObj = { html: 'Failed to render (initial)' };
 vm.createContext(myObj);
 
 try {
@@ -89,13 +89,13 @@ async function linker(specifier, referencingModule) {
     console.log('Synthesisng',specifier,'from',referencingModule.identifier);
     const styled = new vm.SyntheticModule(['default'],function() {
       console.log('In styled shim...');
-      styled.setExport('default', { div: () => {}, section: () => {}, hr: () => {} });
+      styled.setExport('default', { div: () => {}, section: () => {}, hr: () => {}, componentStyle: {} });
     }, { identifier: 'styled', context: myObj });
     await styled.link(linker);
     return styled;
   }
   console.log('Shimming',specifier,'from',referencingModule.identifier);
-  const shim = new vm.SyntheticModule(['default','Configure ','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink'],function(a) { return a }, { context: myObj }); // we leave identifier unset as it varies
+  const shim = new vm.SyntheticModule(['default','Configure','ContextualStyles','DocWrapper','RightColumnWrapper','CallOut','Feature','OrderedListStyles','UnorderedListStyles','Paragraph','TextSection','SideXSide','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink','leftNavItems','algoliasearch','navigate','graphql','withPrefix'],function(a) { const c = function(b){return b;}; }, { context: myObj }); // we leave identifier unset as it varies
   await shim.link(linker);
   return shim;
 }
@@ -113,26 +113,35 @@ async function main(filename) {
     input = html2md.turndown(input);
   }
   if (process.argv[2].endsWith('.jsx')) {
-    if (process.argv[2].indexOf('404x') >= 0) {
-      console.info('Skipping 404 page');
+    if (process.argv[2].indexOf('404.jsx') >= 0 || process.argv[2].indexOf('search.jsx') >= 0) {
+      console.info('Skipping page rendering due to 404.jsx or search.jsx');
       input = '';
     }
     else {
       console.log('Converting jsx input...');
       let jsxc = transform(input, { transforms: { moduleImport: false, moduleExport: false, dangerousTaggedTemplateString: true } }).code;
+      jsxc = 'const process={env:{NODE_ENV:"production"}};'+jsxc;
+      jsxc = jsxc.split('export var query = graphql(templateObject);').join('');
+      jsxc = jsxc.split('.componentStyle.rules').join('');
       jsxc = jsxc.replace("import React from 'react';", 'import * as React from "react";');
       fs.writeFileSync('./jsx.mjs',jsxc,'utf8');
+      jsxc = jsxc.split('\n          ').join(' '); // fix broken string literals
       jsx = new vm.SourceTextModule(jsxc, {identifier: 'jsx', context: myObj, });
       await jsx.link(linker);
-      const runner = new vm.SourceTextModule('import comp from "jsx";const component = new comp(); html = component.render ? component.render(): comp();',{
+      const runner = new vm.SourceTextModule('import comp from "jsx";const component = new comp({data:{}}); html = component.render ? component.render(): comp({data:{}});',{
         identifier: 'runner', context: myObj
       });
       await runner.link(linker);
-      await runner.evaluate();
+      try {
+        await runner.evaluate();
+      }
+      catch (ex) {
+        console.warn(ex);
+      }
       console.log('Converting jsx output...');
       const html = render(myObj.html);
-      fs.writeFileSync('./html.txt',html,'utf8');
-      input = html2md.turndown(html||'Failed to render');
+      fs.writeFileSync('./component.html',html,'utf8');
+      input = html2md.turndown(html||'Failed to render (secondary)');
       fs.writeFileSync('./markdown.md',input,'utf8');
     }
   }

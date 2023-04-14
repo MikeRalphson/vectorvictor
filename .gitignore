@@ -6,5 +6,5 @@ dev/
 *.json
 backup*
 jsx.mjs
-html.txt
+component.html
 markdown.md
