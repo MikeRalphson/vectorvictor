@@ -7,7 +7,6 @@ dev/
 backup*
 jsx.mjs
 mdx.mjs
-example.mdx
 component.html
 markdown.md
 postman-docs

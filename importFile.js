@@ -68,9 +68,9 @@ async function main(filename) {
     { identifier: 'react', context: myObj });
   await react.link(linker);
 
-  await connect();
-  console.log(`Importing ${filename}`);
+  console.log(`Pre-processing ${filename}`);
   let input = fs.readFileSync(process.argv[2],'utf8').split('\r').join('');
+
   if (process.argv[2].endsWith('.mdx')) {
     const compiled = await compile(input);
     const mdxc = String(compiled);
@@ -78,7 +78,7 @@ async function main(filename) {
     mdx = new vm.SourceTextModule(mdxc,
       { identifier: 'mdx', context: myObj });
     await mdx.link(linker);
-    const runner = new vm.SourceTextModule('import mdx from "mdx";html = mdx();',{
+    const runner = new vm.SourceTextModule('import mdx from "mdx";html = JSON.stringify(mdx);',{
       identifier: 'runner', context: myObj
     });
     await runner.link(linker);
@@ -91,9 +91,9 @@ async function main(filename) {
     console.log('Converting mdx output...');
     process.exit(1);
   }
-  if (process.argv[2].endsWith('.jsx')) {
+  else if (process.argv[2].endsWith('.jsx')) {
     if (process.argv[2].indexOf('404.jsx') >= 0 || process.argv[2].indexOf('search.jsx') >= 0) {
-      console.info('Skipping page rendering due to 404.jsx or search.jsx');
+      console.info('Skipping unncessary .jsx page');
       input = '';
     }
     else {
@@ -124,8 +124,12 @@ async function main(filename) {
       fs.writeFileSync('./markdown.md',input,'utf8');
     }
   }
+
   await doit(input, filename);
-  await disconnect();
 }
 
-main(process.argv[2]);
+await connect();
+for (let i=2;i++;i<process.argv.length) {
+  await main(process.argv[i]);
+}
+await disconnect();

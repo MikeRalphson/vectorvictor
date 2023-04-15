@@ -20,5 +20,5 @@ if (process.argv.length >= 4) {
   main(process.argv[2], process.argv[3]);
 }
 else {
-  console.warn(`Usage: node link1.js {queryId} {promptId}`);
+  console.warn(`Usage: node link.js {queryId} {promptId}`);
 }
