@@ -90,7 +90,7 @@ async function main(filename) {
     mdx = new vm.SourceTextModule(mdxc,
       { identifier: 'mdx', context: vmContext });
     await mdx.link(linker);
-    const runner = new vm.SourceTextModule('import mdx from "mdx";html = mdx();',{
+    const runner = new vm.SourceTextModule('import mdx from "mdx";html = "";mdx();',{
       identifier: 'runner', context: vmContext
     });
     await runner.link(linker);
