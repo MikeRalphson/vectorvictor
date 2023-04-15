@@ -16,9 +16,9 @@ let mdx, rjr, inspect; // virtual modules for MDX rendering
 
 const html2md = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', preformattedCode: true });
 html2md.keep(['del', 'ins']);
-const gfm = turndownPluginGfm.gfm
-const tables = turndownPluginGfm.tables
-const strikethrough = turndownPluginGfm.strikethrough
+const gfm = turndownPluginGfm.gfm;
+const tables = turndownPluginGfm.tables;
+const strikethrough = turndownPluginGfm.strikethrough;
 
 // Use the gfm plugin
 html2md.use(gfm);
