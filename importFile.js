@@ -12,7 +12,7 @@ import { doit, connect, disconnect } from './lib/import.js';
 
 let now = new Date();
 let react, jsx; // virtual modules for (p)react/JSX rendering
-let mdx, rjr, inspect; // virtual modules for MDX rendering
+let mdx, rjr; // virtual modules for MDX rendering
 
 const html2md = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', preformattedCode: true });
 html2md.keep(['del', 'ins']);
@@ -76,6 +76,13 @@ async function main(filename) {
   console.log(`Pre-processing ${filename}`);
   let input = fs.readFileSync(process.argv[2],'utf8').split('\r').join('');
 
+  if (!react) {
+    let reactSrc = fs.readFileSync('./preact.mjs','utf8');
+    react = new vm.SourceTextModule(reactSrc,
+      { identifier: 'react', context: vmContext });
+    await react.link(linker);
+  }
+
   if (process.argv[2].endsWith('.mdx')) {
     if (!rjr) {
       const rjrc = fs.readFileSync('./rjr.js','utf8');
@@ -90,7 +97,7 @@ async function main(filename) {
     mdx = new vm.SourceTextModule(mdxc,
       { identifier: 'mdx', context: vmContext });
     await mdx.link(linker);
-    const runner = new vm.SourceTextModule('import mdx from "mdx";html = "";mdx();',{
+    const runner = new vm.SourceTextModule('import mdx from "mdx";html = mdx();',{
       identifier: 'runner', context: vmContext
     });
     await runner.link(linker);
@@ -101,8 +108,10 @@ async function main(filename) {
       console.warn(ex);
     }
     console.log('Converting mdx output...');
-    fs.writeFileSync('./mdx.html',util.inspect(vmContext.html)||'Failed to render (mdx)','utf8');
-    process.exit(1);
+    const html = render(vmContext.html);
+    fs.writeFileSync('./component.html',html,'utf8');
+    input = html2md.turndown(html||'Failed to render (secondary)');
+    fs.writeFileSync('./markdown.md',input,'utf8');
   }
   else if (process.argv[2].endsWith('.jsx')) {
 
@@ -112,10 +121,6 @@ async function main(filename) {
     }
     else {
       if (!react) {
-        let reactSrc = fs.readFileSync('./preact.mjs','utf8');
-        react = new vm.SourceTextModule(reactSrc,
-          { identifier: 'react', context: vmContext });
-        await react.link(linker);
       }
       console.log('Converting jsx input...');
       let jsxc = transform(input, { transforms: { moduleImport: false, moduleExport: false, dangerousTaggedTemplateString: true } }).code;
