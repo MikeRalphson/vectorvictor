@@ -1,4 +1,5 @@
 import * as fs from 'node:fs';
+import * as util from 'node:util';
 import vm from 'node:vm';
 
 import TurndownService from 'turndown';
@@ -11,7 +12,7 @@ import { doit, connect, disconnect } from './lib/import.js';
 
 let now = new Date();
 let react, jsx; // virtual modules for (p)react/JSX rendering
-let mdx; // virtual module for MDX rendering
+let mdx, rjr, inspect; // virtual modules for MDX rendering
 
 const html2md = new TurndownService({ headingStyle: 'atx', codeBlockStyle: 'fenced', preformattedCode: true });
 html2md.keep(['del', 'ins']);
@@ -47,6 +48,14 @@ async function linker(specifier, referencingModule) {
     console.log('Using',specifier,'from',referencingModule.identifier);
     return jsx;
   }
+  if (specifier === 'mdx') {
+    console.log('Using',specifier,'from',referencingModule.identifier);
+    return mdx;
+  }
+  if (specifier === 'react/jsx-runtime') {
+    console.log('Using',specifier,'from',referencingModule.identifier);
+    return rjr;
+  }
   if (specifier.indexOf('styled')>=0) {
     console.log('Synthesisng',specifier,'from',referencingModule.identifier);
     const styled = new vm.SyntheticModule(['default'],function() {
@@ -57,7 +66,7 @@ async function linker(specifier, referencingModule) {
     return styled;
   }
   console.log('Shimming',specifier,'from',referencingModule.identifier);
-  const shim = new vm.SyntheticModule(['default','jsx','jsxs','Chart','Fragment','Configure','ContextualStyles','DocWrapper','RightColumnWrapper','CallOut','Feature','OrderedListStyles','UnorderedListStyles','Paragraph','TextSection','SideXSide','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink','leftNavItems','algoliasearch','navigate','graphql','withPrefix'],function(a) { const c = function(b){return b;}; }, { context: vmContext }); // we leave identifier unset as it varies
+  const shim = new vm.SyntheticModule(['default','jsx','jsxs','Chart','Fragment','Configure','ContextualStyles','DocWrapper','RightColumnWrapper','CallOut','Feature','OrderedListStyles','UnorderedListStyles','Paragraph','TextSection','SideXSide','Snippet','Highlight','InstantSearch','useInstantSearch','Divider','Hits','Pagination','SearchBox','history','theme','v4','BaseButton','BaseLink','BaseLinkStyles','SectionStyles','VideoComponent','LandingCard','OutboundLink','leftNavItems','algoliasearch','navigate','graphql','withPrefix'],function(a) { return function(b){return b;}; }, { context: vmContext }); // we leave identifier unset as it varies
   await shim.link(linker);
   return shim;
 }
@@ -68,13 +77,20 @@ async function main(filename) {
   let input = fs.readFileSync(process.argv[2],'utf8').split('\r').join('');
 
   if (process.argv[2].endsWith('.mdx')) {
+    if (!rjr) {
+      const rjrc = fs.readFileSync('./rjr.js','utf8');
+      rjr = new vm.SourceTextModule(rjrc,
+       { identifier: 'rjr', context: vmContext });
+      await rjr.link(linker);
+    }
+
     const compiled = await compile(input);
     const mdxc = String(compiled);
     fs.writeFileSync('./mdx.mjs',mdxc,'utf8');
     mdx = new vm.SourceTextModule(mdxc,
       { identifier: 'mdx', context: vmContext });
     await mdx.link(linker);
-    const runner = new vm.SourceTextModule('import mdx from "mdx";html = JSON.stringify(mdx);',{
+    const runner = new vm.SourceTextModule('import mdx from "mdx";html = mdx();',{
       identifier: 'runner', context: vmContext
     });
     await runner.link(linker);
@@ -85,7 +101,7 @@ async function main(filename) {
       console.warn(ex);
     }
     console.log('Converting mdx output...');
-    fs.writeFileSync('./mdx.html',vmContext.html||'Failed to render (mdx)','utf8');
+    fs.writeFileSync('./mdx.html',util.inspect(vmContext.html)||'Failed to render (mdx)','utf8');
     process.exit(1);
   }
   else if (process.argv[2].endsWith('.jsx')) {
