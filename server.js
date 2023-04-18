@@ -5,6 +5,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 import { feathers } from '@feathersjs/feathers'
 import { koa, rest, bodyParser, errorHandler, serveStatic } from '@feathersjs/koa'
 import socketio from '@feathersjs/socketio'
+import cors from 'koa-cors';
 import * as swg from 'feathers-swagger';
 
 const swagger = swg.default;
@@ -33,6 +34,7 @@ class MessageService {
 
     return this.messages
   }
+
 }
 
 // Creates an KoaJS compatible Feathers application
@@ -68,8 +70,6 @@ const app = koa(feathers())
 
 // Use the current folder for static file hosting
 app.use(serveStatic('./'));
-//app.use(serveStatic('./postman-docs/'));
-//app.use(serveStatic('./open-technologies-docs/'));
 // Register the error handle
 app.use(errorHandler())
 // Parse JSON request bodies
@@ -79,8 +79,24 @@ app.use(bodyParser())
 app.configure(rest())
 // Configure Socket.io real-time APIs
 app.configure(socketio())
+
+app.use(cors({
+  origin: function (ctx) {
+    console.log('ctx.url:',ctx.url)
+    if (ctx.url === '/') {
+      return "*";
+    }
+    return 'http://127.0.0.1:5500';
+  },
+  exposeHeaders: ['WWW-Authenticate', 'Server-Authorization'],
+  maxAge: 5,
+  credentials: true,
+  allowMethods: ['GET', 'POST'],
+  allowHeaders: ['Content-Type', 'Authorization', 'Accept'],
+}));
+
 // Register our messages service
-app.use('messages', new MessageService())
+app.use('messages', new MessageService());
 
 app.service('messages').on('created', (message) => {
   console.log('A new message has been created', message)
