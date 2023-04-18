@@ -108,4 +108,5 @@ app.on('connection', (connection) => app.channel('everybody').join(connection))
 app.publish((_data) => app.channel('everybody'))
 
 // Start the server
-app.listen(3031).then(() => console.log('Vector-Victor server listening on http://localhost:3031'))
+const port = process.env.PORT || 3031;
+app.listen(port).then(() => console.log(`Vector-Victor server listening on http://localhost:${port}`));
