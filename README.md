@@ -10,10 +10,9 @@
 
 ## Included scripts
 
-* convert training data from html to markdown (`html2md.js`)
-* create embeddings using OpenAI API (`import1.js`)
-* cache queries and search by cosine affinity (`query1.js`)
-* link queries to prompts to correct errors (`link1.js`)
+* create embeddings using OpenAI API (`importFile.js` and `importBlog.js`)
+* cache queries and search by cosine affinity (`query.js`)
+* link queries to prompts to correct errors (`link.js`)
 
 ## TODO
 
