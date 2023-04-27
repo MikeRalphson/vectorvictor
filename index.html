@@ -60,7 +60,12 @@
     <script src="/socket.io/socket.io.js"></script>
     <script type="text/javascript">
       // Set up socket.io
-      const socket = io('http://localhost:3031');
+      console.log('window.location', window.location.toString());
+      const us = window.location.toString().split(':')[1];
+      let port = window.location.toString().split(':').pop() || '3031';
+
+      console.log('Using socket.io on '+us+':'+port);
+      const socket = io(us+':'+port);
       // Initialize a Feathers app
       const app = feathers();
 

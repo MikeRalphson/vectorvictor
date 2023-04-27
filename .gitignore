@@ -1,4 +1,5 @@
 node_modules/
+*.gz
 **/*.pdf
 .env
 dev/
