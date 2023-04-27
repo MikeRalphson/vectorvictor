@@ -1,0 +1,392 @@
+{
+	"info": {
+		"_postman_id": "809b4c63-2c32-4358-a93e-c8c557bcd0dc",
+		"name": "VectorVictor",
+		"description": "A simple API with websocket support for querying NL documentation vectors",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "messages",
+			"item": [
+				{
+					"name": "Retrieves a list of all resources from the service.",
+					"_postman_id": "9be1618f-2f0a-4c04-9714-6bbcaff68de3",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/messages?$limit=10&$skip=0&text=*&table=postman",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"messages"
+							],
+							"query": [
+								{
+									"key": "$limit",
+									"value": "10",
+									"description": "Number of results to return"
+								},
+								{
+									"key": "$skip",
+									"value": "0",
+									"description": "Number of results to skip"
+								},
+								{
+									"key": "text",
+									"value": "*",
+									"description": "Query parameters to filter"
+								},
+								{
+									"key": "table",
+									"value": "postman",
+									"description": "Query parameters to filter"
+								}
+							]
+						},
+						"description": "Retrieves a list of all resources from the service."
+					},
+					"response": [
+						{
+							"id": "19629ee3-984b-4693-b5b3-64631460f510",
+							"name": "not authenticated",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/messages?$limit=<integer>&$skip=<integer>&text=<string>&table=<string>",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"messages"
+									],
+									"query": [
+										{
+											"description": "Number of results to return",
+											"key": "$limit",
+											"value": "<integer>"
+										},
+										{
+											"description": "Number of results to skip",
+											"key": "$skip",
+											"value": "<integer>"
+										},
+										{
+											"description": "Query parameters to filter",
+											"key": "text",
+											"value": "<string>"
+										},
+										{
+											"description": "Query parameters to filter",
+											"key": "table",
+											"value": "<string>"
+										}
+									]
+								}
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "text",
+							"header": [],
+							"cookie": [],
+							"responseTime": null,
+							"body": null
+						},
+						{
+							"id": "82d4d064-70a1-400c-8560-5d6fe79ecb32",
+							"name": "general error",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/messages?$limit=<integer>&$skip=<integer>&text=<string>&table=<string>",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"messages"
+									],
+									"query": [
+										{
+											"description": "Number of results to return",
+											"key": "$limit",
+											"value": "<integer>"
+										},
+										{
+											"description": "Number of results to skip",
+											"key": "$skip",
+											"value": "<integer>"
+										},
+										{
+											"description": "Query parameters to filter",
+											"key": "text",
+											"value": "<string>"
+										},
+										{
+											"description": "Query parameters to filter",
+											"key": "table",
+											"value": "<string>"
+										}
+									]
+								}
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "text",
+							"header": [],
+							"cookie": [],
+							"responseTime": null,
+							"body": null
+						},
+						{
+							"id": "ddbf5ac3-9a73-4ae1-87fc-23624834428b",
+							"name": "success",
+							"originalRequest": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"url": {
+									"raw": "{{baseUrl}}/messages?$limit=<integer>&$skip=<integer>&text=<string>&table=<string>",
+									"host": [
+										"{{baseUrl}}"
+									],
+									"path": [
+										"messages"
+									],
+									"query": [
+										{
+											"description": "Number of results to return",
+											"key": "$limit",
+											"value": "<integer>"
+										},
+										{
+											"description": "Number of results to skip",
+											"key": "$skip",
+											"value": "<integer>"
+										},
+										{
+											"description": "Query parameters to filter",
+											"key": "text",
+											"value": "<string>"
+										},
+										{
+											"description": "Query parameters to filter",
+											"key": "table",
+											"value": "<string>"
+										}
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"responseTime": null,
+							"body": "[\n  {\n    \"id\": \"<integer>\",\n    \"text\": \"<string>\"\n  },\n  {\n    \"id\": \"<integer>\",\n    \"text\": \"<string>\"\n  }\n]"
+						}
+					]
+				},
+				{
+					"name": "Creates a new resource with data.",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"id": "673c3aef-64b3-4dfb-82c8-c6534841c9e0",
+								"exec": [
+									"const dummy = JSON.parse(pm.response.json()[0].text)[0];",
+									"pm.visualizer.set('The response was {{text}} from {{source}} at {{date}}', { text:dummy.text, source: dummy.source, date: dummy.date }, {});",
+									"",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"_postman_id": "51b20f0b-b6ac-47b6-bcaf-2f92e160713a",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"What is GraphQL?\",\n  \"table\": \"postman\"\n}",
+							"options": {
+								"raw": {
+									"headerFamily": "json",
+									"language": "json"
+								}
+							}
+						},
+						"url": "{{baseUrl}}/messages",
+						"description": "Creates a new resource with data."
+					},
+					"response": [
+						{
+							"id": "41360035-730a-4891-8d25-08bfde47b2ee",
+							"name": "created",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"text\": \"<string>\",\n  \"table\": \"<string>\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{baseUrl}}/messages"
+							},
+							"status": "Created",
+							"code": 201,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Content-Type",
+									"value": "application/json"
+								}
+							],
+							"cookie": [],
+							"responseTime": null,
+							"body": "{\n  \"text\": \"<string>\",\n  \"table\": \"<string>\"\n}"
+						},
+						{
+							"id": "9ec0881a-1751-41bf-9070-bc89ba3c4078",
+							"name": "not authenticated",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"text\": \"<string>\",\n  \"table\": \"<string>\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{baseUrl}}/messages"
+							},
+							"status": "Unauthorized",
+							"code": 401,
+							"_postman_previewlanguage": "text",
+							"header": [],
+							"cookie": [],
+							"responseTime": null,
+							"body": null
+						},
+						{
+							"id": "da6004b4-5cf4-4361-8af8-a96156408fa0",
+							"name": "general error",
+							"originalRequest": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Accept",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"text\": \"<string>\",\n  \"table\": \"<string>\"\n}",
+									"options": {
+										"raw": {
+											"headerFamily": "json",
+											"language": "json"
+										}
+									}
+								},
+								"url": "{{baseUrl}}/messages"
+							},
+							"status": "Internal Server Error",
+							"code": 500,
+							"_postman_previewlanguage": "text",
+							"header": [],
+							"cookie": [],
+							"responseTime": null,
+							"body": null
+						}
+					]
+				}
+			],
+			"_postman_id": "7ed54e18-f9a8-4bd2-a0ce-6b50e8900dca",
+			"description": "A messages service"
+		}
+	],
+	"variable": [
+		{
+			"id": "aa6d0913-8d40-48dc-b12d-c5260e3ce273",
+			"key": "baseUrl",
+			"value": "/",
+			"type": "string"
+		}
+	]
+}
