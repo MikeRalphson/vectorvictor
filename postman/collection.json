@@ -237,8 +237,8 @@
 							"script": {
 								"id": "673c3aef-64b3-4dfb-82c8-c6534841c9e0",
 								"exec": [
-									"const dummy = JSON.parse(pm.response.json()[0].text)[0];",
-									"pm.visualizer.set('The response was {{text}} from {{source}} at {{date}}', { text:dummy.text, source: dummy.source, date: dummy.date }, {});",
+									"const dummy = JSON.parse(pm.response.json()[0].text);",
+									"pm.visualizer.set('<html><body><ul>{{#each json}}<li>{{text}} - <a href=\"{{source}}\">{{source}}, page {{page}} ({{date}})</a></li>{{/each}}</ul>',dummy);",
 									"",
 									""
 								],
@@ -264,7 +264,7 @@
 						],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n  \"text\": \"What is GraphQL?\",\n  \"table\": \"postman\"\n}",
+							"raw": "{\n  \"text\": \"Who is lintilla?\",\n  \"table\": \"hhg\"\n}",
 							"options": {
 								"raw": {
 									"headerFamily": "json",
@@ -272,27 +272,7 @@
 								}
 							}
 						},
-						"url": {
-							"raw": "{{baseUrl}}/messages?query=who is lintilla?&table=hhg",
-							"host": [
-								"{{baseUrl}}"
-							],
-							"path": [
-								"messages"
-							],
-							"query": [
-								{
-									"key": "query",
-									"value": "who is lintilla?",
-									"type": "text"
-								},
-								{
-									"key": "table",
-									"value": "hhg",
-									"type": "text"
-								}
-							]
-						},
+						"url": "{{baseUrl}}/messages",
 						"description": "Creates a new resource with data."
 					},
 					"response": [
