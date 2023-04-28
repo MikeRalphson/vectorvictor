@@ -238,7 +238,7 @@
 								"id": "673c3aef-64b3-4dfb-82c8-c6534841c9e0",
 								"exec": [
 									"const dummy = JSON.parse(pm.response.json()[0].text);",
-									"pm.visualizer.set('<html><body><ul>{{#each json}}<li>{{text}} - <a href=\"{{source}}\">{{source}}, page {{page}} ({{date}})</a></li>{{/each}}</ul>',dummy);",
+									"pm.visualizer.set('<html><body><ul>{{#each data}}<li>{{text}} - <a href=\"{{source}}\">{{source}}, page {{page}} ({{date}})</a></li>{{/each}}</ul>',dummy);",
 									"",
 									""
 								],
