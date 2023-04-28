@@ -17,7 +17,7 @@
 							"script": {
 								"id": "d5d0b201-4b28-4bf2-ac81-91bb0d1c95f4",
 								"exec": [
-									"pm.visualizer.set('<html><body><ul>{{#each json}}<li>{{text}} - <a href=\"{{source}}\">{{source}}, page {{page}}</a></li>{{/each}}</ul>',{json: JSON.parse(pm.response.json()[0].text) });"
+									"pm.visualizer.set('<html><body><ul>{{#each json}}<li>{{text}} - <a href=\"{{source}}\">{{source}}, page {{page}} ({{date}})</a></li>{{/each}}</ul>',{json: JSON.parse(pm.response.json()[0].text) });"
 								],
 								"type": "text/javascript"
 							}
