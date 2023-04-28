@@ -17,7 +17,7 @@
 							"script": {
 								"id": "d5d0b201-4b28-4bf2-ac81-91bb0d1c95f4",
 								"exec": [
-									"pm.visualizer.set('{{=json}}',{json: JSON.stringify(JSON.parse(pm.response.json()[0].text),null,2) });"
+									"pm.visualizer.set('{=json}',{json: JSON.stringify(JSON.parse(pm.response.json()[0].text),null,2) });"
 								],
 								"type": "text/javascript"
 							}
