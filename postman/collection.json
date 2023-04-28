@@ -272,7 +272,27 @@
 								}
 							}
 						},
-						"url": "{{baseUrl}}/messages",
+						"url": {
+							"raw": "{{baseUrl}}/messages?query=who is lintilla?&table=hhg",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"messages"
+							],
+							"query": [
+								{
+									"key": "query",
+									"value": "who is lintilla?",
+									"type": "text"
+								},
+								{
+									"key": "table",
+									"value": "hhg",
+									"type": "text"
+								}
+							]
+						},
 						"description": "Creates a new resource with data."
 					},
 					"response": [
