@@ -18,7 +18,7 @@
 								"id": "d5d0b201-4b28-4bf2-ac81-91bb0d1c95f4",
 								"exec": [
 									"pm.visualizer.set('{{json}}',{json: JSON.parse(pm.response.json)[0].text });",
-									""
+									"ß"
 								],
 								"type": "text/javascript"
 							}
