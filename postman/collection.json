@@ -19,6 +19,15 @@
 								"exec": [
 									"pm.visualizer.set('<html><body><ul>{{#each json}}<li>{{text}} - <a href=\"{{source}}\">{{source}}, page {{page}} ({{date}})</a></li>{{/each}}</ul>',{json: JSON.parse(pm.response.json()[0].text) });"
 								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"id": "090be657-bc0b-47b5-8afc-a2f95fbceac3",
+								"exec": [],
 								"type": "text/javascript"
 							}
 						}
@@ -36,7 +45,7 @@
 							}
 						],
 						"url": {
-							"raw": "{{baseUrl}}/messages?$limit=10&$skip=0&text=*&table=postman",
+							"raw": "{{baseUrl}}/messages?$limit=10&$skip=0&text=*&table=postman.  ",
 							"host": [
 								"{{baseUrl}}"
 							],
@@ -61,7 +70,7 @@
 								},
 								{
 									"key": "table",
-									"value": "postman",
+									"value": "postman.  ",
 									"description": "Query parameters to filter"
 								}
 							]
